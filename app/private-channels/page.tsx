@@ -1,26 +1,8 @@
-import { ArrowRight, Banknote, EyeOff, Gauge, Landmark, ShieldCheck } from "lucide-react";
+import { ArrowRight, Gauge, Landmark } from "lucide-react";
 import { ChannelFlowDemo } from "../components/ChannelFlowDemo";
 import { PrivateChannelsShowcase } from "../components/PrivateChannelsShowcase";
 import { PrivateChannelUseCases } from "../components/PrivateChannelUseCases";
 import { SiteHeader } from "../components/SiteHeader";
-
-const limitations = [
-  {
-    icon: EyeOff,
-    problem: "모든 거래와 잔액이 공개됩니다.",
-    solution: "기관이 통제하는 사설 환경에서 비공개로 처리합니다.",
-  },
-  {
-    icon: Banknote,
-    problem: "거래마다 가스비가 듭니다.",
-    solution: "수수료 지불자를 즉석에서 합성해 무수수료로 실행합니다.",
-  },
-  {
-    icon: ShieldCheck,
-    problem: "참여자와 규칙을 통제할 수 없습니다.",
-    solution: "AML 한도와 승인 규칙을 기관이 직접 적용합니다.",
-  },
-];
 
 export default function PrivateChannelsPage() {
   return (
@@ -47,26 +29,6 @@ export default function PrivateChannelsPage() {
         </div>
       </section>
 
-      <section className="detail-section" id="why">
-        <div className="section-heading">
-          <h2>퍼블릭 체인의 한계를 채널 구조로 풉니다.</h2>
-        </div>
-        <div className="pc-why-grid">
-          {limitations.map((item) => {
-            const Icon = item.icon;
-            return (
-              <article className="pc-why-card" key={item.problem}>
-                <span className="pc-why-icon">
-                  <Icon size={18} aria-hidden="true" />
-                </span>
-                <p className="pc-why-problem">{item.problem}</p>
-                <p className="pc-why-solution">{item.solution}</p>
-              </article>
-            );
-          })}
-        </div>
-      </section>
-
       <section className="detail-section" id="structure">
         <div className="section-heading">
           <h2>메인넷은 정산 레이어, 채널은 실행 레이어.</h2>
@@ -76,7 +38,7 @@ export default function PrivateChannelsPage() {
 
       <section className="detail-section" id="flows">
         <div className="section-heading">
-          <h2>입금, 송금, 출금이 하나의 구조로 연결됩니다.</h2>
+          <h2>채널 이동, 송금, 메인넷 정산이 하나의 구조로 연결됩니다.</h2>
         </div>
         <ChannelFlowDemo />
       </section>
@@ -84,7 +46,7 @@ export default function PrivateChannelsPage() {
       <section className="detail-section" id="use-cases">
         <div className="section-heading wide">
           <div>
-            <h2>증권거래와 스테이블코인 송금에서 유틸리티가 바로 드러납니다.</h2>
+            <h2>증권거래와 스테이블코인 발행 및 송금에서 유틸리티가 바로 드러납니다.</h2>
           </div>
           <p>
             외부에는 에스크로에 잠긴 자산만 보이고, 주문자와 송금 상세 같은 민감한 데이터는
