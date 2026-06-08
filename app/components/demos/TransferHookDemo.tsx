@@ -15,6 +15,7 @@ import {
   SlidersHorizontal,
   Wallet,
 } from "lucide-react";
+import { SuccessBurst } from "../SuccessBurst";
 
 type Phase = "idle" | "request" | "verify" | "decide" | "done";
 type Result = "pass" | "fail" | null;
@@ -355,6 +356,7 @@ export function TransferHookDemo() {
         </div>
 
         <div className={`thd-policy-runtime ${hookState}`}>
+          <SuccessBurst show={phase === "done" && result === "fail"} tone="reject" />
           <div className="thd-runtime-core">
             <span>솔라나 네트워크</span>
             <strong>토큰 익스텐션</strong>
@@ -397,6 +399,7 @@ export function TransferHookDemo() {
         </div>
 
         <div className={`thd-wallet ${result === "pass" ? "credited" : ""}`}>
+          <SuccessBurst show={phase === "done" && result === "pass"} />
           <div className="thd-wallet-top">
             <Landmark size={15} aria-hidden="true" />
             수신 지갑

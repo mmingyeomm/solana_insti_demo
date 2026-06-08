@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ArrowRight, Check, Landmark, Lock, RotateCcw, Snowflake, Unlock, Wallet } from "lucide-react";
+import { ArrowRight, KeyRound, Landmark, Lock, RotateCcw, Snowflake, Unlock, Wallet } from "lucide-react";
+import { SuccessBurst } from "../SuccessBurst";
 
 type AccountStatus = "frozen" | "active";
 type TransferState = "idle" | "blocked" | "passed";
@@ -25,7 +26,6 @@ export function DefaultAccountStateDemo() {
 
   const selectedAccount = accounts.find((account) => account.id === selectedId) ?? accounts[0];
   const selectedStatus = accountStates[selectedId];
-  const activeCount = Object.values(accountStates).filter((state) => state === "active").length;
 
   const recipientBalance = transferState === "passed" ? START_RECIPIENT + AMOUNT : START_RECIPIENT;
   const treasuryBalance = transferState === "passed" ? START_TREASURY - AMOUNT : START_TREASURY;
@@ -54,21 +54,6 @@ export function DefaultAccountStateDemo() {
 
   return (
     <div className={`dasd ${selectedStatus} ${transferState}`}>
-      <div className="dasd-config">
-        <div>
-          <span>토큰 설정</span>
-          <strong>Default Account State: Frozen</strong>
-        </div>
-        <div>
-          <span>신규 계정</span>
-          <strong>{accounts.length}개 기본 동결</strong>
-        </div>
-        <div>
-          <span>동결 해제</span>
-          <strong>{activeCount}개 계정</strong>
-        </div>
-      </div>
-
       <section className="dasd-stage" aria-label="Default Account State 데모">
         <div className="dasd-network" aria-hidden="true" />
 
@@ -134,6 +119,33 @@ export function DefaultAccountStateDemo() {
             </div>
             <em>{statusLabel}</em>
           </div>
+
+          <div className="dasd-admin-panel">
+            <div className="dasd-admin-head">
+              <KeyRound size={15} aria-hidden="true" />
+              <span>관리자 조치</span>
+            </div>
+            <div className="dasd-admin-actions">
+              <button
+                className="button button-muted"
+                disabled={selectedStatus === "active"}
+                onClick={unfreezeSelected}
+                type="button"
+              >
+                <Unlock size={14} aria-hidden="true" />
+                동결 해제
+              </button>
+              <button
+                className="button button-muted"
+                disabled={selectedStatus === "frozen"}
+                onClick={freezeSelected}
+                type="button"
+              >
+                <Lock size={14} aria-hidden="true" />
+                다시 동결
+              </button>
+            </div>
+          </div>
         </div>
 
         <div
@@ -144,6 +156,8 @@ export function DefaultAccountStateDemo() {
         </div>
 
         <div className={`dasd-wallet recipient ${transferState === "passed" ? "credited" : ""}`}>
+          <SuccessBurst show={transferState === "passed"} />
+          <SuccessBurst show={transferState === "blocked"} tone="reject" />
           <div className="dasd-node-title">
             <Wallet size={15} aria-hidden="true" />
             고객 지갑
@@ -158,17 +172,6 @@ export function DefaultAccountStateDemo() {
           <RotateCcw size={14} aria-hidden="true" />
           초기화
         </button>
-        {selectedStatus === "active" ? (
-          <button className="button button-muted" onClick={freezeSelected} type="button">
-            <Lock size={14} aria-hidden="true" />
-            다시 동결
-          </button>
-        ) : (
-          <button className="button button-muted" onClick={unfreezeSelected} type="button">
-            <Check size={14} aria-hidden="true" />
-            선택 계정 동결 해제
-          </button>
-        )}
         <button className="button button-dark" onClick={testTransfer} type="button">
           <ArrowRight size={14} aria-hidden="true" />
           선택 계정으로 전송

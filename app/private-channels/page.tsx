@@ -1,113 +1,101 @@
-import { ArrowRight, Banknote, Building2, Landmark, LockKeyhole, RefreshCw } from "lucide-react";
-import { SimulationShowcase } from "../components/SimulationShowcase";
+import { ArrowRight, Banknote, EyeOff, Gauge, Landmark, ShieldCheck } from "lucide-react";
+import { ChannelFlowDemo } from "../components/ChannelFlowDemo";
+import { PrivateChannelsShowcase } from "../components/PrivateChannelsShowcase";
+import { PrivateChannelUseCases } from "../components/PrivateChannelUseCases";
 import { SiteHeader } from "../components/SiteHeader";
 
-const channelSteps = [
+const limitations = [
   {
-    title: "채널 개설",
-    body: "참여자와 한도, 실행 조건을 먼저 정합니다.",
-  },
-  {
-    title: "내부 실행",
-    body: "참여자 사이의 이전을 채널 안에서 처리합니다.",
-  },
-  {
-    title: "최종 정산",
-    body: "필요한 시점에 상태를 공개 정산 레이어에 반영합니다.",
-  },
-];
-
-const cases = [
-  {
-    icon: Landmark,
-    title: "은행 간 채널",
-    body: "두 금융기관 사이의 반복 이전을 채널 내부에서 처리합니다.",
-  },
-  {
-    icon: RefreshCw,
-    title: "유동성 이동",
-    body: "운영 계좌와 트레저리 사이의 자금 위치를 조정합니다.",
+    icon: EyeOff,
+    problem: "모든 거래와 잔액이 공개됩니다.",
+    solution: "기관이 통제하는 사설 환경에서 비공개로 처리합니다.",
   },
   {
     icon: Banknote,
-    title: "정산 전 이전",
-    body: "외부 공개 전 필요한 이전 결과만 정리해 반영합니다.",
+    problem: "거래마다 가스비가 듭니다.",
+    solution: "수수료 지불자를 즉석에서 합성해 무수수료로 실행합니다.",
+  },
+  {
+    icon: ShieldCheck,
+    problem: "참여자와 규칙을 통제할 수 없습니다.",
+    solution: "AML 한도와 승인 규칙을 기관이 직접 적용합니다.",
   },
 ];
 
 export default function PrivateChannelsPage() {
   return (
-    <main>
+    <main className="private-channels-page">
       <SiteHeader />
 
       <section className="detail-hero">
-        <p className="eyebrow">Private Channels</p>
-        <h1>비공개 실행과 정산을 분리합니다.</h1>
+        <h1>자산은 메인넷에, 결제는 사설 채널에서.</h1>
         <p>
-          참여자 간 이전은 채널 내부에서 처리하고, 필요한 상태만 정산 레이어에 반영합니다.
+          Private Channels는 메인넷에 1:1로 묶인 자산을 기반으로, 기관이 통제하는 사설
+          채널에서 결제를 처리합니다. 채널은 빠르고 무수수료이며 비공개이고, 자산의 보관과
+          정산은 언제든 메인넷이 맡습니다.
         </p>
-      </section>
-
-      <section className="detail-section" id="visual">
-        <div className="section-heading">
-          <p className="eyebrow">시각자료</p>
-          <h2>채널 안에서 실행되는 이전 흐름.</h2>
-        </div>
-        <div className="channel-visual-card">
-          <div className="channel-party">
-            <Landmark size={24} aria-hidden="true" />
-            <span>은행 A</span>
-          </div>
-          <div className="channel-center">
-            <LockKeyhole size={24} aria-hidden="true" />
-            <strong>Private Channel</strong>
-            <span>내부 실행</span>
-          </div>
-          <div className="channel-party">
-            <Building2 size={24} aria-hidden="true" />
-            <span>은행 B</span>
-          </div>
-        </div>
-        <div className="channel-step-grid">
-          {channelSteps.map((step) => (
-            <article key={step.title}>
-              <strong>{step.title}</strong>
-              <p>{step.body}</p>
-            </article>
-          ))}
+        <div className="pc-analogy" aria-hidden="true">
+          <span>
+            <Landmark size={16} aria-hidden="true" />
+            메인넷 = 금고 (보관과 정산)
+          </span>
+          <ArrowRight size={15} aria-hidden="true" />
+          <span>
+            <Gauge size={16} aria-hidden="true" />
+            채널 = 창구 (빠른 실행)
+          </span>
         </div>
       </section>
 
-      <section className="detail-section" id="simulation">
+      <section className="detail-section" id="why">
         <div className="section-heading">
-          <p className="eyebrow">시뮬레이션</p>
-          <h2>채널 실행과 정산 흐름을 확인합니다.</h2>
+          <h2>퍼블릭 체인의 한계를 채널 구조로 풉니다.</h2>
         </div>
-        <SimulationShowcase categoryIds={["channels"]} initialCategoryId="channels" compactTabs />
-      </section>
-
-      <section className="detail-section" id="cases">
-        <div className="section-heading">
-          <p className="eyebrow">사례</p>
-          <h2>비공개 실행이 필요한 적용 영역.</h2>
-        </div>
-        <div className="case-grid">
-          {cases.map((item) => {
+        <div className="pc-why-grid">
+          {limitations.map((item) => {
             const Icon = item.icon;
             return (
-              <article className="case-card" key={item.title}>
-                <Icon size={22} aria-hidden="true" />
-                <h3>{item.title}</h3>
-                <p>{item.body}</p>
+              <article className="pc-why-card" key={item.problem}>
+                <span className="pc-why-icon">
+                  <Icon size={18} aria-hidden="true" />
+                </span>
+                <p className="pc-why-problem">{item.problem}</p>
+                <p className="pc-why-solution">{item.solution}</p>
               </article>
             );
           })}
         </div>
       </section>
 
+      <section className="detail-section" id="structure">
+        <div className="section-heading">
+          <h2>메인넷은 정산 레이어, 채널은 실행 레이어.</h2>
+        </div>
+        <PrivateChannelsShowcase />
+      </section>
+
+      <section className="detail-section" id="flows">
+        <div className="section-heading">
+          <h2>입금, 송금, 출금이 하나의 구조로 연결됩니다.</h2>
+        </div>
+        <ChannelFlowDemo />
+      </section>
+
+      <section className="detail-section" id="use-cases">
+        <div className="section-heading wide">
+          <div>
+            <h2>증권거래와 스테이블코인 송금에서 유틸리티가 바로 드러납니다.</h2>
+          </div>
+          <p>
+            외부에는 에스크로에 잠긴 자산만 보이고, 주문자와 송금 상세 같은 민감한 데이터는
+            Private Channels 안에서 권한별로 관리됩니다.
+          </p>
+        </div>
+        <PrivateChannelUseCases />
+      </section>
+
       <section className="final-cta">
         <div>
-          <p className="eyebrow">다음 페이지</p>
           <h2>토큰 정책 구조도 함께 확인합니다.</h2>
         </div>
         <a className="button button-dark" href="/token-extensions">

@@ -6,3 +6,5 @@ dist/
 !.env.example
 *.log
 coverage/
+OVERVIEW_KR.md
+x.pptx

@@ -1,106 +1,95 @@
-import {
-  ArrowRight,
-  Ban,
-  Building2,
-  FileCheck2,
-  Layers3,
-  ReceiptText,
-  ShieldCheck,
-  UserRound,
-} from "lucide-react";
+import { Coins, FileText, Globe, Landmark, PlayCircle } from "lucide-react";
 import { SiteHeader } from "../components/SiteHeader";
 import { TokenFeatureAccordion } from "../components/TokenFeatureAccordion";
 
+const moreExtensions = [
+  {
+    name: "Mint close authority",
+    body: "민트 계정을 닫고 남은 계정 잔액을 회수할 수 있습니다.",
+  },
+  {
+    name: "Non-transferable tokens",
+    body: "사용자 간 양도를 막아 특정 계정에 묶인 자산을 만들 수 있습니다.",
+  },
+  {
+    name: "Metadata pointer",
+    body: "토큰 메타데이터를 참조할 주소를 지정합니다. 필요하면 민트 계정 자체를 기준으로 둘 수 있습니다.",
+  },
+  {
+    name: "Metadata",
+    body: "커스텀 필드를 포함한 메타데이터를 민트 계정에 직접 저장합니다.",
+  },
+  {
+    name: "CPI Guard",
+    body: "다른 프로그램이 토큰 계정에 접근할 때 허용하지 않을 동작을 제한합니다.",
+  },
+  {
+    name: "Reallocate",
+    body: "계정 생성 후 추가 확장을 넣을 공간을 확보하도록 토큰 계정을 재할당합니다.",
+  },
+];
+
 const cases = [
   {
-    icon: FileCheck2,
-    title: "토큰화 예금",
-    body: "발행자 정책과 계정 상태를 토큰 단위로 관리합니다.",
+    icon: Landmark,
+    title: "PYUSD",
+    issuer: "PayPal, Paxos",
+    body: "솔라나에서 토큰 익스텐션을 본격 활용한 대표 달러 스테이블코인입니다.",
+    tags: ["Permanent Delegate", "Memo", "Transfer Fee", "Transfer Hook"],
   },
   {
-    icon: ShieldCheck,
-    title: "규칙 기반 RWA",
-    body: "투자자 요건과 이전 제한을 전송 단계에서 확인합니다.",
+    icon: Coins,
+    title: "USDP",
+    issuer: "Paxos",
+    body: "규제 달러 스테이블코인으로, 초기부터 토큰 익스텐션을 도입해 발행자 통제를 토큰 단위로 적용합니다.",
+    tags: ["Token Extensions"],
   },
   {
-    icon: ReceiptText,
-    title: "정산 메타데이터",
-    body: "주문 번호와 회계 식별자를 결제 기록과 연결합니다.",
+    icon: Globe,
+    title: "GYEN 및 ZUSD",
+    issuer: "GMO Trust",
+    body: "엔화와 달러 스테이블코인에 토큰 익스텐션을 적용해 규제 준수에 필요한 정책을 토큰 단위로 운영합니다.",
+    tags: ["Token Extensions"],
   },
 ];
 
 export default function TokenExtensionsPage() {
   return (
-    <main>
+    <main className="token-extensions-page">
       <SiteHeader />
 
       <section className="token-intro">
         <div className="token-intro-copy">
-          <p className="eyebrow">토큰 익스텐션</p>
-          <h1>토큰이 전송을 직접 검사합니다.</h1>
-          <p>
-            전송 조건, 계정 상태, 메모, 수수료 같은 정책을 토큰 레벨에서 확인하고
-            조건을 통과한 전송만 처리합니다.
-          </p>
-        </div>
-
-        <div className="token-intro-art" aria-hidden="true">
-          <img src="/token-extensions-shape.png" alt="" />
-        </div>
-      </section>
-
-      <section className="detail-section" id="visual">
-        <div className="token-network-animation" aria-label="토큰 익스텐션 검증 흐름">
-          <span className="network-name">솔라나 네트워크</span>
-
-          <div className="token-actor normal">
-            <UserRound size={22} aria-hidden="true" />
-            <span>정상 사용자</span>
-          </div>
-
-          <div className="network-plane" aria-hidden="true">
-            <span className="network-grid" />
-            <span className="network-wrap network-wrap-outer" />
-            <span className="path-line normal-path" />
-            <span className="path-line blocked-path" />
-            <span className="packet normal-packet" />
-            <span className="packet malicious-packet" />
-            <span className="pass-badge">통과</span>
-            <span className="fail-badge">실패</span>
-            <span className="fail-ring" />
-          </div>
-
-          <div className="token-checkpoint">
-            <Layers3 size={30} aria-hidden="true" />
-            <span>토큰 익스텐션</span>
-          </div>
-
-          <div className="token-actor malicious">
-            <Ban size={22} aria-hidden="true" />
-            <span>악성 사용자</span>
-          </div>
-
-          <div className="token-destination">
-            <Building2 size={22} aria-hidden="true" />
-            <span>수신 계정</span>
-          </div>
+          <h1>기관에 필요한 정책을 토큰에 직접 내장합니다.</h1>
+          <p>전송 통제, 정보 공개 범위, 이자와 수수료 같은 운영 정책을 별도 시스템 없이 토큰 레벨에서 처리합니다.</p>
         </div>
       </section>
 
       <section className="detail-section" id="simulation">
+        <TokenFeatureAccordion />
+      </section>
+
+      <section className="detail-section" id="more-extensions">
         <div className="section-heading wide">
           <div>
-            <p className="eyebrow">정책 시뮬레이터</p>
-            <h2>기능별 데모를 접어서 확인합니다.</h2>
+            <h2>위 데모가 전부는 아닙니다.</h2>
           </div>
+          <p>이 외에도 다양한 확장을 조합해 적용할 수 있습니다.</p>
         </div>
-        <TokenFeatureAccordion />
+
+        <div className="token-more-list">
+          {moreExtensions.map((item) => (
+            <div className="token-more-row" key={item.name}>
+              <code>{item.name}</code>
+              <p>{item.body}</p>
+            </div>
+          ))}
+        </div>
       </section>
 
       <section className="detail-section" id="cases">
         <div className="section-heading">
-          <p className="eyebrow">사례</p>
-          <h2>토큰 정책이 필요한 적용 영역.</h2>
+          <h2>토큰 익스텐션을 적용한 실제 발행 사례</h2>
         </div>
         <div className="case-grid">
           {cases.map((item) => {
@@ -108,8 +97,16 @@ export default function TokenExtensionsPage() {
             return (
               <article className="case-card" key={item.title}>
                 <Icon size={22} aria-hidden="true" />
-                <h3>{item.title}</h3>
+                <div className="case-card-title">
+                  <h3>{item.title}</h3>
+                  <span>{item.issuer}</span>
+                </div>
                 <p>{item.body}</p>
+                <div className="case-card-tags" aria-label="적용 익스텐션">
+                  {item.tags.map((tag) => (
+                    <code key={tag}>{tag}</code>
+                  ))}
+                </div>
               </article>
             );
           })}
@@ -118,13 +115,28 @@ export default function TokenExtensionsPage() {
 
       <section className="final-cta">
         <div>
-          <p className="eyebrow">다음 페이지</p>
-          <h2>채널 내부 실행 구조도 함께 확인합니다.</h2>
+          <h2>자료에서 더 자세히 확인합니다.</h2>
         </div>
-        <a className="button button-dark" href="/private-channels">
-          Private Channels
-          <ArrowRight size={16} aria-hidden="true" />
-        </a>
+        <div className="cta-actions">
+          <a
+            className="button button-dark"
+            href="https://drive.google.com/file/d/13u20-ItOcNXQpqlO3JHrC1eYhtz1PilE/view"
+            rel="noreferrer"
+            target="_blank"
+          >
+            <FileText size={16} aria-hidden="true" />
+            문서 읽기
+          </a>
+          <a
+            className="button button-muted"
+            href="https://www.youtube.com/watch?v=CEuKahqOYbs"
+            rel="noreferrer"
+            target="_blank"
+          >
+            <PlayCircle size={16} aria-hidden="true" />
+            영상 보기
+          </a>
+        </div>
       </section>
     </main>
   );

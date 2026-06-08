@@ -6,14 +6,14 @@ const productPages = [
     icon: Layers3,
     title: "토큰 익스텐션",
     href: "/token-extensions",
-    description: "토큰에 정책을 붙이고, 전송 조건과 공개 범위를 설계합니다.",
+    description: "토큰에 발행자 정책을 붙여 전송 조건과 공개 범위를 기관 기준으로 통제합니다.",
     items: ["시각자료", "정책 시뮬레이션", "적용 사례"],
   },
   {
     icon: LockKeyhole,
     title: "Private Channels",
     href: "/private-channels",
-    description: "참여자 간 이전을 비공개 채널에서 실행하고 정산합니다.",
+    description: "기관 참여자 간 이전을 비공개 채널에서 실행하고 정산합니다.",
     items: ["채널 구조", "실행 시뮬레이션", "금융권 사례"],
   },
 ];
@@ -24,11 +24,11 @@ export default function Home() {
       <SiteHeader />
 
       <section className="home-hero" id="overview">
-        <p className="eyebrow">솔라나 결제</p>
-        <h1>결제와 자산 흐름을 두 가지 구성요소로 나눠 봅니다.</h1>
+        <p className="eyebrow">Solana for Institution</p>
+        <h1>토큰 정책과 비공개 정산 흐름을 한눈에 봅니다.</h1>
         <p className="hero-copy">
-          토큰 익스텐션과 Private Channels를 각각의 페이지에서 시각자료,
-          시뮬레이션, 사례로 확인합니다.
+          토큰 익스텐션과 Private Channels가 자산 운영, 전송 통제, 비공개 실행에 어떻게 쓰이는지
+          시각자료와 데모로 확인할 수 있습니다.
         </p>
       </section>
 
@@ -62,11 +62,11 @@ export default function Home() {
 
       <footer className="site-footer">
         <div>
-          <a className="brand" href="/" aria-label="솔라나 결제 쇼케이스 홈">
+          <a className="brand" href="/" aria-label="Solana for Institution 홈">
             <img className="brand-logo" src="/solana.svg" alt="" aria-hidden="true" />
-            <span>솔라나 결제</span>
+            <span>Solana for Institution</span>
           </a>
-          <p>각 구성요소를 별도 페이지에서 검토할 수 있도록 정리한 쇼케이스입니다.</p>
+          <p>금융권에서 검토할 만한 구성요소를 페이지별로 정리한 쇼케이스입니다.</p>
         </div>
         <div className="footer-columns">
           {productPages.map((page) => (
