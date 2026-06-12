@@ -20,16 +20,18 @@ const AMOUNT = 180;
 const START_SENDER = 1200;
 const START_RECIPIENT = 320;
 const DEFAULT_REFERENCE = "BOK-PAY-2026-0142";
+const SETTLE_MS = 720;
 
 export function MemoRequiredDemo() {
   const [reference, setReference] = useState(DEFAULT_REFERENCE);
   const [phase, setPhase] = useState<Phase>("idle");
   const [result, setResult] = useState<Result>(null);
+  const [settled, setSettled] = useState(false);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const hasReference = reference.trim().length > 0;
-  const senderBalance = result === "pass" ? START_SENDER - AMOUNT : START_SENDER;
-  const recipientBalance = result === "pass" ? START_RECIPIENT + AMOUNT : START_RECIPIENT;
+  const senderBalance = settled ? START_SENDER - AMOUNT : START_SENDER;
+  const recipientBalance = settled ? START_RECIPIENT + AMOUNT : START_RECIPIENT;
   const running = phase === "send";
   const gateState = phase === "send" ? "checking" : phase === "done" ? result ?? "ready" : "ready";
 
@@ -42,17 +44,23 @@ export function MemoRequiredDemo() {
     clearTimers();
     setPhase("idle");
     setResult(null);
+    setSettled(false);
     setReference(DEFAULT_REFERENCE);
   };
 
   const run = () => {
     clearTimers();
     setResult(null);
+    setSettled(false);
     setPhase("send");
+    const pass = hasReference;
     timers.current.push(
       setTimeout(() => {
-        setResult(hasReference ? "pass" : "fail");
+        setResult(pass ? "pass" : "fail");
         setPhase("done");
+        if (pass) {
+          timers.current.push(setTimeout(() => setSettled(true), SETTLE_MS));
+        }
       }, 920),
     );
   };
@@ -77,7 +85,7 @@ export function MemoRequiredDemo() {
           </div>
 
           <label className="mrd-reference-field">
-            <span>결제 참조값</span>
+            <span>거래 참조값</span>
             <input
               disabled={running}
               onChange={(event) => setReference(event.target.value)}
@@ -88,10 +96,10 @@ export function MemoRequiredDemo() {
 
           <div className="mrd-memo-actions">
             <button className="button button-muted" disabled={running} onClick={() => setReference(DEFAULT_REFERENCE)} type="button">
-              포함
+              참조값 포함
             </button>
             <button className="button button-muted" disabled={running} onClick={() => setReference("")} type="button">
-              제거
+              참조값 제거
             </button>
           </div>
         </div>
@@ -121,12 +129,12 @@ export function MemoRequiredDemo() {
 
           <div className="mrd-rule-row">
             <span>검증 기준</span>
-            <strong>결제 참조값 포함</strong>
+            <strong>거래 참조값 포함</strong>
           </div>
 
           <div className={`mrd-memo-chip ${hasReference ? "filled" : "missing"}`}>
             {hasReference ? <Check size={13} aria-hidden="true" /> : <Ban size={13} aria-hidden="true" />}
-            {hasReference ? reference : "참조값 없음"}
+            {hasReference ? reference : "참조값 미포함"}
           </div>
         </div>
 
@@ -137,8 +145,8 @@ export function MemoRequiredDemo() {
           <span />
         </div>
 
-        <div className={`mrd-wallet recipient ${result === "pass" ? "credited" : ""}`}>
-          <SuccessBurst show={phase === "done" && result === "pass"} />
+        <div className={`mrd-wallet recipient ${settled ? "credited" : ""}`}>
+          <SuccessBurst show={settled} />
           <SuccessBurst show={phase === "done" && result === "fail"} tone="reject" />
           <div>
             <Wallet size={15} aria-hidden="true" />

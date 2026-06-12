@@ -25,31 +25,31 @@ const hookOptions = [
   {
     id: "allow",
     label: "허용 계정",
-    example: "승인된 고객 지갑만 전송을 허용합니다.",
+    example: "승인된 고객 지갑에 한해 전송을 허용합니다.",
     failName: "미등록 지갑",
-    failCaption: "허용 계정에서 중단",
+    failCaption: "허용 계정 검증에서 중단",
     failAddr: "Ax29...e4R",
   },
   {
     id: "kyc",
     label: "KYC 상태",
-    example: "본인 확인이 끝난 계정만 통과시킵니다.",
+    example: "본인 확인이 완료된 계정만 전송을 통과시킵니다.",
     failName: "KYC 미완료",
-    failCaption: "KYC에서 중단",
+    failCaption: "KYC 검증에서 중단",
     failAddr: "4tB2...kP9",
   },
   {
     id: "sanctions",
     label: "제한 대상",
-    example: "제재 목록이나 내부 차단 대상을 걸러냅니다.",
+    example: "제재 목록 또는 내부 차단 대상 여부를 확인합니다.",
     failName: "제한 대상",
-    failCaption: "제재 확인에서 중단",
+    failCaption: "제재 대상 검증에서 중단",
     failAddr: "9vP1...xK8",
   },
   {
     id: "limit",
     label: "보유 한도",
-    example: "계정별 최대 보유량을 넘지 않게 확인합니다.",
+    example: "계정별 최대 보유 한도를 초과하지 않는지 확인합니다.",
     failName: "보유 한도 초과",
     failCaption: "한도에서 중단",
     failAddr: "7qL4...mR2",
@@ -82,6 +82,7 @@ const steps = ["요청", "정책", "검증", "결과"];
 const REQUEST_MS = 620;
 const VERIFY_START_MS = REQUEST_MS + 260;
 const CHECK_MS = 380;
+const SETTLE_MS = 720;
 
 export function TransferHookDemo() {
   const [stage, setStage] = useState<Stage>("setup");
@@ -89,6 +90,7 @@ export function TransferHookDemo() {
   const [scenarioId, setScenarioId] = useState("normal");
   const [phase, setPhase] = useState<Phase>("idle");
   const [result, setResult] = useState<Result>(null);
+  const [settled, setSettled] = useState(false);
   const [activeCheck, setActiveCheck] = useState(-1);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
@@ -162,12 +164,14 @@ export function TransferHookDemo() {
     clearTimers();
     setPhase("idle");
     setResult(null);
+    setSettled(false);
     setActiveCheck(-1);
   };
 
   const run = () => {
     clearTimers();
     setResult(null);
+    setSettled(false);
     setActiveCheck(-1);
     setPhase("request");
 
@@ -177,12 +181,16 @@ export function TransferHookDemo() {
     }
     const scanEnd = VERIFY_START_MS + (lastCheckIndex + 1) * CHECK_MS;
     timers.current.push(setTimeout(() => setPhase("decide"), scanEnd + 120));
+    const doneAt = scanEnd + 520;
     timers.current.push(
       setTimeout(() => {
         setResult(passed ? "pass" : "fail");
         setPhase("done");
-      }, scanEnd + 520),
+      }, doneAt),
     );
+    if (passed) {
+      timers.current.push(setTimeout(() => setSettled(true), doneAt + SETTLE_MS));
+    }
   };
 
   const createToken = () => {
@@ -200,8 +208,8 @@ export function TransferHookDemo() {
   const stepIndex =
     phase === "idle" ? -1 : phase === "request" ? 0 : phase === "verify" ? 1 : phase === "decide" ? 2 : 3;
 
-  const senderBalance = result === "pass" ? START_SENDER - AMOUNT : START_SENDER;
-  const recipientBalance = result === "pass" ? START_RECIPIENT + AMOUNT : START_RECIPIENT;
+  const senderBalance = settled ? START_SENDER - AMOUNT : START_SENDER;
+  const recipientBalance = settled ? START_RECIPIENT + AMOUNT : START_RECIPIENT;
 
   const hookState =
     phase === "verify" || phase === "decide"
@@ -221,12 +229,12 @@ export function TransferHookDemo() {
 
   if (stage === "setup") {
     return (
-      <div className="thd thd-setup">
+      <div className="thd thd-setup demo-screen-enter" key="setup">
         <div className="thd-policy-board">
           <section className="thd-token-form" aria-label="토큰 정책 설정">
             <div className="thd-form-head">
               <span>토큰 정책 설정</span>
-              <strong>전송 직전에 실행할 Hook을 선택합니다.</strong>
+              <strong>전송 실행 전에 적용할 검증 로직을 선택합니다.</strong>
             </div>
 
             <div className="thd-token-card">
@@ -243,12 +251,12 @@ export function TransferHookDemo() {
               </div>
               <div>
                 <span>전송 정책</span>
-                <strong>{configuredHooks.length}개 Hook 연결</strong>
+                <strong>검증 Hook {configuredHooks.length}개 연결</strong>
               </div>
             </div>
 
             <div className="thd-policy-preview">
-              <span>생성될 정책</span>
+              <span>적용 예정 정책</span>
               <div>
                 {configuredHooks.map((hook) => (
                   <code key={hook.id}>{hook.label}</code>
@@ -264,8 +272,8 @@ export function TransferHookDemo() {
 
           <aside className="thd-hook-catalog" aria-label="Hook 선택">
             <div className="thd-catalog-head">
-              <span>Hook 선택</span>
-              <strong>필요한 검증 로직을 조합합니다.</strong>
+              <span>검증 로직 선택</span>
+              <strong>기관 운영에 필요한 전송 검증 조건을 조합합니다.</strong>
             </div>
             <div className="thd-hook-list">
               {hookOptions.map((hook) => {
@@ -294,7 +302,7 @@ export function TransferHookDemo() {
   }
 
   return (
-    <div className={`thd thd-simulate ${hookState}`}>
+    <div className={`thd thd-simulate demo-screen-enter ${hookState}`} key="simulate">
       <div className="thd-sim-head">
         <button className="thd-back" onClick={backToSetup} type="button">
           <ArrowLeft size={14} aria-hidden="true" />
@@ -311,11 +319,7 @@ export function TransferHookDemo() {
               onClick={() => setScenarioId(item.id)}
               type="button"
             >
-              <span>
-                <strong>{item.name}</strong>
-                <small>{item.caption}</small>
-              </span>
-              <code>{item.addr}</code>
+              <strong>{item.name}</strong>
             </button>
           ))}
         </div>
@@ -398,8 +402,8 @@ export function TransferHookDemo() {
           <span className="thd-packet" />
         </div>
 
-        <div className={`thd-wallet ${result === "pass" ? "credited" : ""}`}>
-          <SuccessBurst show={phase === "done" && result === "pass"} />
+        <div className={`thd-wallet ${settled ? "credited" : ""}`}>
+          <SuccessBurst show={settled} />
           <div className="thd-wallet-top">
             <Landmark size={15} aria-hidden="true" />
             수신 지갑

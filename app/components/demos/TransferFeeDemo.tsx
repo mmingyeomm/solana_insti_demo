@@ -97,7 +97,7 @@ export function TransferFeeDemo() {
 
   if (stage === "setup") {
     return (
-      <div className="tfd tfd-setup">
+      <div className="tfd tfd-setup demo-screen-enter" key="setup">
         <section className="tfd-setup-board" aria-label="Transfer Fee 정책 설정">
           <div className="tfd-network" aria-hidden="true" />
 
@@ -108,7 +108,7 @@ export function TransferFeeDemo() {
               </span>
               <div>
                 <span>토큰 정책 설정</span>
-                <strong>수수료 수취처와 조건을 정합니다.</strong>
+                <strong>전송 수수료 조건과 수취처를 설정합니다.</strong>
               </div>
             </div>
 
@@ -139,7 +139,7 @@ export function TransferFeeDemo() {
                         value={recipient.label}
                       />
                       <button
-                        aria-label="수취처 삭제"
+                        aria-label="수수료 삭제"
                         className="tfd-subject-remove"
                         onClick={() => removeRecipient(recipient.id)}
                         type="button"
@@ -178,13 +178,13 @@ export function TransferFeeDemo() {
               </div>
             ) : (
               <div className="tfd-subject-empty">
-                수수료 수취처가 없습니다. 전액이 수신 지갑으로 전달됩니다.
+                수수료 수취처가 없습니다. 전송 금액 전액이 수신 지갑으로 전달됩니다.
               </div>
             )}
 
             <div className="tfd-split">
               <span>예상 수수료 {fee.toFixed(2)} USDC</span>
-              <strong>예상 순수령 {net.toFixed(2)} USDC</strong>
+              <strong>예상 순수령액 {net.toFixed(2)} USDC</strong>
             </div>
 
             <button className="button button-dark" onClick={goDisplay} type="button">
@@ -198,7 +198,7 @@ export function TransferFeeDemo() {
   }
 
   return (
-    <div className="tfd">
+    <div className="tfd demo-screen-enter" key="display">
       <div className="tfd-runtime-bar">
         <button className="button button-muted" onClick={goSetup} type="button">
           <ArrowLeft size={14} aria-hidden="true" />
@@ -253,7 +253,7 @@ export function TransferFeeDemo() {
 
           <div className="tfd-split">
             <span>수수료 {fee.toFixed(2)} USDC</span>
-            <strong>순수령 {net.toFixed(2)} USDC</strong>
+            <strong>순수령액 {net.toFixed(2)} USDC</strong>
           </div>
         </div>
 

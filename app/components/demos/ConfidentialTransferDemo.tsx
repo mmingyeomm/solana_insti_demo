@@ -12,17 +12,26 @@ export function ConfidentialTransferDemo() {
 
   return (
     <div className={`ctd ${keyApplied ? "key-applied" : ""}`}>
+      <div className="ctd-view-switch" aria-label="Confidential Transfer 조회 방식">
+        <button className={!keyApplied ? "active" : ""} onClick={() => setKeyApplied(false)} type="button">
+          공개 원장 보기
+        </button>
+        <button className={keyApplied ? "active" : ""} onClick={() => setKeyApplied(true)} type="button">
+          권한 조회
+        </button>
+      </div>
+
       <section className="ctd-stage" aria-label="Confidential Transfer 공개 범위">
         <div className="ctd-network" aria-hidden="true" />
 
         <div className={`ctd-floating-key ${keyApplied ? "used" : ""}`}>
-          <button className="ctd-key-face" onClick={() => setKeyApplied((current) => !current)} type="button">
+          <div className="ctd-key-face" aria-hidden="true">
             {keyApplied ? <ShieldCheck size={20} aria-hidden="true" /> : <KeyRound size={20} aria-hidden="true" />}
             <span>
-              <strong>열람 키</strong>
-              <code>송신자, 수신자, 감사자</code>
+              <strong>{keyApplied ? "키 적용됨" : "조회 권한"}</strong>
+              <code>송신자 / 수신자 / 감사자</code>
             </span>
-          </button>
+          </div>
         </div>
 
         <div className="ctd-wallet">
@@ -50,7 +59,7 @@ export function ConfidentialTransferDemo() {
           </div>
 
           <div className={`ctd-cipher ${keyApplied ? "unlocked" : ""}`}>
-            <span>{keyApplied ? "권한 키로 확인한 전송 금액" : "공개 기록의 암호화된 금액"}</span>
+            <span>{keyApplied ? "권한 있는 주체가 확인한 전송 금액" : "공개 기록의 암호화된 금액"}</span>
             <strong>{keyApplied ? AMOUNT : "8F A2 19 C7"}</strong>
           </div>
         </div>

@@ -34,7 +34,7 @@ export function InterestBearingTokenDemo() {
 
   if (stage === "setup") {
     return (
-      <div className="ibd ibd-setup">
+      <div className="ibd ibd-setup demo-screen-enter" key="setup">
         <section className="ibd-setup-board" aria-label="Interest Bearing Token 정책 설정">
           <div className="ibd-network" aria-hidden="true" />
 
@@ -73,7 +73,7 @@ export function InterestBearingTokenDemo() {
   }
 
   return (
-    <div className="ibd">
+    <div className="ibd demo-screen-enter" key="display">
       <div className="ibd-runtime-bar">
         <button className="button button-muted" onClick={() => setStage("setup")} type="button">
           <ArrowLeft size={14} aria-hidden="true" />
@@ -92,6 +92,10 @@ export function InterestBearingTokenDemo() {
           </div>
           <strong>{PRINCIPAL.toLocaleString()} USDC</strong>
           <span>기준 잔액</span>
+        </div>
+
+        <div className="ibd-wire" aria-hidden="true">
+          <span className="ibd-line-label">정책 적용</span>
         </div>
 
         <div className="ibd-policy">
@@ -114,12 +118,32 @@ export function InterestBearingTokenDemo() {
             <CalendarDays size={15} aria-hidden="true" />
             <span>{term}일 기준</span>
           </div>
+
+          <div className="ibd-formula">
+            <span>기준 잔액</span>
+            <strong>+</strong>
+            <span>기간별 증가분</span>
+          </div>
+        </div>
+
+        <div className="ibd-wire" aria-hidden="true">
+          <span className="ibd-line-label">표시값 계산</span>
         </div>
 
         <div className="ibd-display">
           <span>표시 잔액</span>
           <strong>{displayBalance.toLocaleString(undefined, { maximumFractionDigits: 2 })} USDC</strong>
           <code>증가분 {interest.toLocaleString(undefined, { maximumFractionDigits: 2 })} USDC</code>
+          <div className="ibd-breakdown" aria-label="표시 잔액 구성">
+            <span>
+              <code>{PRINCIPAL.toLocaleString()}</code>
+              기준 잔액
+            </span>
+            <span>
+              <code>{interest.toLocaleString(undefined, { maximumFractionDigits: 2 })}</code>
+              증가분
+            </span>
+          </div>
         </div>
       </section>
     </div>

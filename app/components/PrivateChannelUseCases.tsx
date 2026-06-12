@@ -42,30 +42,29 @@ const scenarios = [
     title: "증권거래",
     cta: "증권거래 Private Channels 적용해보기",
     summary: "주문자 정보는 감추고, 체결과 감독은 유지합니다.",
-    note: "토큰 증권은 메인넷 에스크로를 거쳐 Private Channels로 이동하고, 주문과 체결은 채널 내부에서 처리됩니다.",
+    note: "토큰 증권은 메인넷 에스크로에 잠근 뒤 채널 안에서 거래 잔액으로 사용합니다. 주문과 체결은 채널 내부 흐름으로 다룹니다.",
     flows: [
       {
         kind: "deposit",
         name: "채널 이동",
         title: "토큰 증권을 메인넷에서 Private Channels로 이동합니다.",
-        desc: "메인넷 자산은 에스크로에 잠기고, 같은 수량이 채널 안의 거래 잔액으로 반영됩니다.",
+        desc: "메인넷 자산을 에스크로에 잠가 거래 가능 수량을 확정하고, 채널은 그 수량 안에서 주문과 체결을 처리합니다.",
         points: [
-          "메인넷: 자산 보유",
-          "에스크로: 1:1 잠금",
-          "채널: 거래 잔액 반영",
-          "거래 기준: 채널 잔액",
+          "원본 자산 보관과 거래 실행을 분리합니다.",
+          "잠긴 수량만큼 채널 안에 거래 가능 잔액이 생깁니다.",
+          "이후 주문과 체결은 공개 거래 없이 채널 안에서 진행됩니다.",
         ],
         asset: "토큰 증권",
       },
       {
         kind: "trade",
         name: "거래",
-        title: "매수와 매도 주문은 채널 내부에서 매칭됩니다.",
-        desc: "주문자 정보와 체결 상세는 채널 안에서만 처리됩니다.",
+        title: "매수와 매도 주문을 채널 안에서 체결합니다.",
+        desc: "주문자 정보와 체결 상세는 공개 장부로 바로 나가지 않고 채널 안에서 다룹니다.",
         points: [
-          "매수와 매도 주문 유입",
-          "채널 안에서 주문 매칭",
-          "체결 기록과 보유 수량 갱신",
+          "주문은 메인넷 공개 전송 없이 채널로 들어옵니다.",
+          "가격과 수량 조건이 맞으면 채널 안에서 체결됩니다.",
+          "체결 후 참여자별 보유 수량과 기록이 즉시 갱신됩니다.",
         ],
         asset: "토큰 증권",
         actorA: "매수자",
@@ -75,29 +74,29 @@ const scenarios = [
       {
         kind: "monitor",
         name: "모니터링",
-        title: "한국거래소와 규제 당국이 권한 범위 안에서 모니터링합니다.",
-        desc: "체결 원장은 채널 안에 두고, 각 기관은 필요한 범위만 조회합니다.",
+        title: "감독과 시장 감시는 권한 범위 안에서 유지합니다.",
+        desc: "체결 원장은 채널 안에 두고, 한국거래소와 금융당국, 참여 증권사가 필요한 범위만 확인합니다.",
         points: [
-          "한국거래소: 전체 시장 감시",
-          "금융당국: 감사 범위 조회",
-          "참여 증권사: 자기 거래 확인",
+          "한국거래소는 전체 체결 흐름을 감시할 수 있습니다.",
+          "금융당국은 승인된 감사 범위 안에서 기록을 확인합니다.",
+          "참여 증권사는 자기 거래와 보유 기록만 확인합니다.",
         ],
         asset: "체결 기록",
         monitorViews: [
-          { label: "한국거래소", sub: "전체 체결 모니터링" },
-          { label: "금융당국", sub: "감사 범위 조회" },
-          { label: "참여 증권사", sub: "자기 거래 확인" },
+          { label: "한국거래소", sub: "전체 체결 흐름" },
+          { label: "금융당국", sub: "승인된 감사 범위" },
+          { label: "참여 증권사", sub: "자기 거래와 보유 기록" },
         ],
       },
       {
         kind: "withdraw",
         name: "메인넷 정산",
-        title: "채널에서 정리한 결과를 메인넷 자산으로 되돌립니다.",
-        desc: "채널 잔액을 소각하고 SMT 검증을 거쳐 에스크로의 토큰 증권 잠금을 해제합니다.",
+        title: "채널 거래 결과를 메인넷 자산으로 정산합니다.",
+        desc: "채널 잔액을 소각하고 SMT 검증을 거쳐 에스크로에 잠긴 토큰 증권을 해제합니다.",
         points: [
-          "채널: 잔액 burn",
-          "SMT: 중복 이동 방지",
-          "메인넷: 자산 수령",
+          "채널에서 먼저 잔액을 소각해 정산 요청을 만듭니다.",
+          "SMT 검증으로 같은 정산이 두 번 처리되지 않게 합니다.",
+          "검증이 끝나면 에스크로의 자산 잠금이 해제됩니다.",
         ],
         asset: "토큰 증권",
       },
@@ -109,17 +108,17 @@ const scenarios = [
     title: "스테이블코인 발행 및 송금",
     cta: "스테이블코인 발행 및 송금 적용해보기",
     summary: "메인넷에서 발행한 자산을 채널로 이동해 비공개 결제로 씁니다.",
-    note: "은행은 메인넷에서 스테이블코인을 발행하고, 에스크로를 거쳐 Private Channels로 이동한 수량만큼 은행 간 결제를 처리합니다.",
+    note: "은행은 메인넷에서 스테이블코인을 발행하고, 결제에 사용할 수량만 에스크로에 잠급니다. 채널 안에서는 그 수량을 기준으로 은행 간 결제를 처리합니다.",
     flows: [
       {
         kind: "issue",
         name: "발행",
-        title: "은행이 메인넷에서 스테이블코인을 발행합니다.",
-        desc: "발행 은행이 메인넷에서 mint를 만들고, 결제에 사용할 스테이블코인 잔액을 발행합니다.",
+        title: "은행이 메인넷에서 결제 자산을 발행합니다.",
+        desc: "발행 은행이 스테이블코인을 만들고, 이후 채널 결제에 투입할 수량을 정합니다.",
         points: [
-          "은행: 발행 권한 보유",
-          "메인넷: mint 생성",
-          "발행 잔액: 은행 보유",
+          "발행 은행이 발행 기준과 공급량을 정합니다.",
+          "메인넷 발행 잔액이 이후 채널 이동의 원천이 됩니다.",
+          "결제에 투입할 수량만 에스크로로 보낼 수 있습니다.",
         ],
         asset: "스테이블코인",
         amount: "$10M",
@@ -128,23 +127,23 @@ const scenarios = [
         kind: "deposit",
         name: "채널 이동",
         title: "발행한 스테이블코인을 메인넷에서 Private Channels로 이동합니다.",
-        desc: "메인넷 자산은 에스크로에 잠기고, 같은 수량이 채널 안의 결제 잔액으로 반영됩니다.",
+        desc: "발행한 자산 중 결제에 사용할 수량을 에스크로에 잠그고, 채널은 그 수량 안에서 은행 간 결제를 처리합니다.",
         points: [
-          "메인넷: 스테이블코인 보유",
-          "에스크로: 1:1 잠금",
-          "채널: 결제 잔액 반영",
+          "발행된 자산 중 결제에 사용할 수량만 채널로 이동합니다.",
+          "잠긴 수량만큼 채널 안에 결제 가능 잔액이 생깁니다.",
+          "은행 간 송금은 이 채널 잔액을 기준으로 실행합니다.",
         ],
         asset: "스테이블코인",
       },
       {
         kind: "transfer",
         name: "송금",
-        title: "은행 간 결제는 채널 내부에서 즉시 처리됩니다.",
+        title: "은행 간 결제를 채널 안에서 즉시 처리합니다.",
         desc: "메인넷을 거치지 않고 잔액과 한도를 확인한 뒤, 참여 은행의 채널 잔액을 비공개로 갱신합니다.",
         points: [
-          "Gateway 규칙 확인",
-          "채널 파이프라인: 즉시 실행",
-          "참여 은행 잔액: 원자적 갱신",
+          "송금 요청은 채널 입구에서 잔액과 한도 조건을 확인합니다.",
+          "조건을 통과하면 채널 안에서 즉시 실행됩니다.",
+          "참여 은행의 잔액은 한 번의 처리로 함께 갱신됩니다.",
         ],
         asset: "스테이블코인",
         actorA: "은행 A",
@@ -154,12 +153,12 @@ const scenarios = [
       {
         kind: "monitor",
         name: "감사 조회",
-        title: "은행과 감사 주체는 필요한 범위만 조회합니다.",
-        desc: "Gateway와 Auth는 참여 은행, 발행 은행, 감사 주체가 볼 수 있는 기록의 범위를 나눕니다.",
+        title: "참여자별로 볼 수 있는 기록을 나눕니다.",
+        desc: "Gateway와 Auth는 참여 은행, 발행 은행, 감사 주체가 접근할 수 있는 기록의 범위를 분리합니다.",
         points: [
-          "참여 은행: 자기 잔액 확인",
-          "발행 은행: 거래 규칙 적용",
-          "감사 주체: 승인 범위 조회",
+          "참여 은행은 자기 잔액과 거래 기록을 확인합니다.",
+          "발행 은행은 한도와 승인 규칙을 적용합니다.",
+          "감사 주체는 승인된 범위의 기록만 조회합니다.",
         ],
         asset: "송금 기록",
         monitorViews: [
@@ -171,12 +170,12 @@ const scenarios = [
       {
         kind: "privacyWithdraw",
         name: "메인넷 정산",
-        title: "채널 잔액을 메인넷 자산으로 되돌릴 때 정산 방식을 선택합니다.",
+        title: "채널 잔액을 메인넷 자산으로 정산합니다.",
         desc: "채널 잔액을 소각하고, 배치 정산이나 Confidential Transfer로 메인넷 수령 방식을 정합니다.",
         points: [
-          "채널: 잔액 burn",
-          "SMT: 중복 이동 방지",
-          "배치 정산 또는 Confidential Transfer",
+          "채널에서 먼저 잔액을 소각해 정산 요청을 만듭니다.",
+          "SMT 검증으로 같은 정산이 두 번 처리되지 않게 합니다.",
+          "배치 정산이나 Confidential Transfer로 수령 방식을 선택합니다.",
         ],
         asset: "스테이블코인",
       },
@@ -229,13 +228,13 @@ function FlowVisual({ flow }: { flow: Flow }) {
       <div className="pc-flow-visual issue" aria-label={`${flow.name} 플로우`}>
         <FlowNode icon={Building2} label="발행 은행" sub="스테이블코인 발행" />
         <div className="pc-flow-lane">
-          <span className="pc-lane-label">mint 준비</span>
+          <span className="pc-lane-label">발행 요청</span>
         </div>
-        <FlowNode icon={Coins} label="메인넷 mint" sub={`${flow.amount ?? "발행 한도"} 발행`} tone="dark" />
+        <FlowNode icon={Coins} label="메인넷 발행" sub={`${flow.amount ?? "발행 한도"} 설정`} tone="dark" />
         <div className="pc-flow-lane">
-          <span className="pc-lane-label">1:1 발행</span>
+          <span className="pc-lane-label">잔액 확보</span>
         </div>
-        <FlowNode icon={Wallet} label="은행 보유 잔액" sub={`${flow.asset} 생성`} />
+        <FlowNode icon={Wallet} label="은행 잔액" sub="채널 투입 전 대기" />
       </div>
     );
   }
@@ -243,16 +242,16 @@ function FlowVisual({ flow }: { flow: Flow }) {
   if (flow.kind === "deposit") {
     return (
       <div className="pc-flow-visual deposit" aria-label={`${flow.name} 플로우`}>
-        <FlowNode icon={Wallet} label="메인넷 지갑" sub={`${flow.asset} 보유`} />
+        <FlowNode icon={Wallet} label="메인넷 지갑" sub="채널로 보낼 수량 선택" />
         <div className="pc-flow-lane">
           <span className="pc-lane-label">잠금</span>
         </div>
-        <FlowNode icon={LockKeyhole} label="에스크로" sub="실제 자산 1:1 잠금" tone="dark" />
+        <FlowNode icon={LockKeyhole} label="에스크로" sub="선택 수량 잠금" tone="dark" />
         <div className="pc-flow-lane">
           <span className="pc-lane-label">채널 반영</span>
         </div>
         <ChannelShell>
-          <FlowNode icon={Database} label="채널 잔액" sub="거래 가능 잔액 생성" tone="private" />
+          <FlowNode icon={Database} label="채널 잔액" sub="채널 안에서 사용할 한도" tone="private" />
         </ChannelShell>
       </div>
     );
@@ -275,7 +274,7 @@ function FlowVisual({ flow }: { flow: Flow }) {
             <div className="pc-flow-lane" aria-hidden="true">
               <span className="pc-lane-label">체결 결과</span>
             </div>
-            <FlowNode icon={Database} label="체결 기록" sub="잔액과 보유 수량 갱신" tone="private" />
+            <FlowNode icon={Database} label="체결 기록" sub="보유 수량과 기록 동시 갱신" tone="private" />
           </div>
         </ChannelShell>
         <div className="pc-external-blind">
@@ -305,7 +304,7 @@ function FlowVisual({ flow }: { flow: Flow }) {
         <div className="pc-flow-lane" aria-hidden="true">
           <span className="pc-lane-label">수취</span>
         </div>
-        <FlowNode icon={Building2} label={flow.actorB ?? "수취 기관"} sub="채널 잔액 반영" />
+        <FlowNode icon={Building2} label={flow.actorB ?? "수취 기관"} sub="수취 잔액 갱신" />
       </div>
     );
   }
@@ -346,11 +345,11 @@ function FlowVisual({ flow }: { flow: Flow }) {
       <div className="pc-flow-visual privacy-withdraw" aria-label={`${flow.name} 플로우`}>
         <ChannelShell mode="wide">
           <div className="pc-shell-split">
-            <FlowNode icon={Database} label="채널 잔액" sub="메인넷 정산 요청" tone="private" />
+            <FlowNode icon={Database} label="채널 잔액" sub="정산할 수량 선택" tone="private" />
             <div className="pc-flow-lane" aria-hidden="true">
-              <span className="pc-lane-label">burn</span>
+              <span className="pc-lane-label">소각</span>
             </div>
-            <FlowNode icon={Flame} label="Withdraw" sub="채널 잔액 소각" tone="private" />
+            <FlowNode icon={Flame} label="Withdraw" sub="선택 수량 소각" tone="private" />
           </div>
         </ChannelShell>
         <div className="pc-flow-lane" aria-hidden="true">
@@ -372,11 +371,11 @@ function FlowVisual({ flow }: { flow: Flow }) {
     <div className="pc-flow-visual withdraw" aria-label={`${flow.name} 플로우`}>
       <ChannelShell mode="wide">
         <div className="pc-shell-split">
-          <FlowNode icon={Database} label="채널 잔액" sub="메인넷 정산 요청" tone="private" />
+          <FlowNode icon={Database} label="채널 잔액" sub="정산할 수량 선택" tone="private" />
           <div className="pc-flow-lane" aria-hidden="true">
-            <span className="pc-lane-label">burn</span>
+            <span className="pc-lane-label">소각</span>
           </div>
-          <FlowNode icon={Flame} label="Withdraw" sub="채널 잔액 소각" tone="private" />
+          <FlowNode icon={Flame} label="Withdraw" sub="선택 수량 소각" tone="private" />
         </div>
       </ChannelShell>
       <div className="pc-flow-lane" aria-hidden="true">
@@ -423,7 +422,8 @@ export function PrivateChannelUseCases() {
               <ChevronDown size={18} aria-hidden="true" />
             </button>
 
-            {isOpen ? (
+            <div className={`demo-collapse ${isOpen ? "open" : ""}`}>
+              <div className="demo-collapse-inner">
               <div className="pc-case-panel">
                 <div className="pc-case-panel-head">
                   <p>{item.note}</p>
@@ -462,7 +462,8 @@ export function PrivateChannelUseCases() {
                   <FlowVisual flow={activeFlow} />
                 </section>
               </div>
-            ) : null}
+              </div>
+            </div>
           </article>
         );
       })}
