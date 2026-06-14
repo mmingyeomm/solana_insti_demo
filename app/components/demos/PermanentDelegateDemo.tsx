@@ -22,18 +22,18 @@ type Phase = "idle" | "request" | "verify" | "done";
 type Result = "executed" | "rejected" | null;
 
 const requesters = {
-  issuer: { name: "발행자 (기관)", addr: "Iss...K7", icon: Landmark, note: "Permanent Delegate 보유" },
+  issuer: { name: "한국은행", addr: "BOK...K7", icon: Landmark, note: "예외 조치 권한 보유" },
   user: { name: "일반 사용자", addr: "Usr...3p", icon: UserRound, note: "위임 권한 없음" },
 } as const;
 
 const actions: { id: ActionId; label: string; badge: string; icon: typeof Undo2 }[] = [
-  { id: "clawback", label: "회수", badge: "발행자로 회수", icon: Undo2 },
-  { id: "burn", label: "소각", badge: "소각 완료", icon: Flame },
-  { id: "freeze", label: "동결", badge: "동결됨", icon: Snowflake },
+  { id: "clawback", label: "탈취 금액 회수", badge: "기관 회수 계정으로 이동", icon: Undo2 },
+  { id: "burn", label: "오발행분 소각", badge: "소각 완료", icon: Flame },
+  { id: "freeze", label: "의심 계정 동결", badge: "계정 동결", icon: Snowflake },
 ];
 
 const TARGET_START = 800;
-const steps = ["조치 요청", "권한 확인", "조치 실행"];
+const steps = ["사고 접수", "권한 확인", "조치 실행"];
 
 const REQUEST_MS = 680;
 const VERIFY_MS = 1280;
@@ -130,6 +130,17 @@ export function PermanentDelegateDemo() {
       <section className="pdd-stage" aria-label="Permanent Delegate 조치 흐름">
         <div className="dasd-network" aria-hidden="true" />
 
+        <div className="pdd-incident">
+          <span>운영 사고 대응</span>
+          <strong>
+            {actionId === "clawback"
+              ? "악의적 주소로 이동한 금액을 회수합니다."
+              : actionId === "burn"
+                ? "오발행된 토큰을 유통량에서 제거합니다."
+                : "이상거래 계정을 즉시 멈춥니다."}
+          </strong>
+        </div>
+
         <div className="pdd-party">
           <div className="pdd-party-top">
             <PartyIcon size={15} aria-hidden="true" />
@@ -154,16 +165,16 @@ export function PermanentDelegateDemo() {
               <ShieldCheck size={22} aria-hidden="true" />
             )}
           </div>
-          <span>토큰 익스텐션</span>
+          <span>Token Extensions</span>
           <strong>Permanent Delegate</strong>
           <small>
             {nodeState === "checking"
               ? "지정 위임자 대조 중…"
               : nodeState === "executed"
-                ? "발행자 = 지정 위임자 확인"
+                ? "한국은행 권한 확인"
                 : nodeState === "rejected"
                   ? "지정 위임자 아님"
-                  : "지정 위임자: 발행자(기관)"}
+                  : "지정 위임자: 한국은행"}
           </small>
         </div>
 
@@ -181,7 +192,7 @@ export function PermanentDelegateDemo() {
           <SuccessBurst show={phase === "done" && result === "rejected"} tone="reject" />
           <div className="pdd-party-top">
             <Wallet size={15} aria-hidden="true" />
-            대상 계정
+            {actionId === "clawback" ? "악의적 주소" : actionId === "burn" ? "오발행 계정" : "의심 계정"}
           </div>
           <code>Hld...9x</code>
           <strong>{targetBalance.toLocaleString()} USDC</strong>

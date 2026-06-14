@@ -4,7 +4,7 @@ import { SiteHeader } from "./components/SiteHeader";
 const productPages = [
   {
     icon: Layers3,
-    title: "토큰 익스텐션",
+    title: "Token Extensions",
     href: "/token-extensions",
     description: "토큰에 발행자 정책을 내장해 기관 기준에 맞는 전송 조건, 권한 관리, 정보 공개 범위를 통제합니다.",
     items: [""],
@@ -20,7 +20,7 @@ const productPages = [
     description: "메인넷과 연결된 비공개 채널을 통해, 기관 참여자 간 거래를 빠르고 비공개적으로 실행합니다.",
     items: [""],
     links: [
-      { label: "시뮬레이션", href: "/private-channels#asset-flow" },
+      { label: "시뮬레이션", href: "/private-channels#use-cases" },
       { label: "사례", href: "/private-channels#use-cases" },
     ],
   },
@@ -32,7 +32,7 @@ export default function Home() {
       <SiteHeader />
 
       <section className="home-hero" id="overview">
-        <p className="eyebrow">Solana for Institution</p>
+        <p className="eyebrow">솔라나 재단 X 한국은행</p>
         <h1>솔라나 기관형 인프라</h1>
         <p className="hero-copy">
         토큰 정책 관리와 비공개 실행 환경을 제공하는 두 가지 솔라나 솔루션을 확인합니다.
@@ -70,9 +70,9 @@ export default function Home() {
 
       <footer className="site-footer">
         <div>
-          <a className="brand" href="/" aria-label="Solana for Institution 홈">
+          <a className="brand" href="/" aria-label="솔라나 재단 X 한국은행 홈">
             <img className="brand-logo" src="/solana.svg" alt="" aria-hidden="true" />
-            <span>Solana for Institution</span>
+            <span>솔라나 재단 X 한국은행</span>
           </a>
         </div>
         <div className="footer-columns">

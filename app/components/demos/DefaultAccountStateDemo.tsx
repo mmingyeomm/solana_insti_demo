@@ -9,9 +9,9 @@ type Phase = "idle" | "send" | "done";
 type Result = "passed" | "blocked" | null;
 
 const accounts = [
-  { id: "alpha", name: "고객 A", addr: "Rcpt...9mQ" },
-  { id: "beta", name: "고객 B", addr: "Rcpt...2xL" },
-  { id: "gamma", name: "고객 C", addr: "Rcpt...7pA" },
+  { id: "alpha", name: "승인 고객", addr: "Rcpt...9mQ", note: "심사 완료" },
+  { id: "beta", name: "신규 계정", addr: "Rcpt...2xL", note: "승인 전" },
+  { id: "gamma", name: "이상거래 계정", addr: "Rcpt...7pA", note: "급증 거래 감지" },
 ];
 
 const START_TREASURY = 5000;
@@ -22,7 +22,12 @@ const SETTLE_MS = 720;
 
 export function DefaultAccountStateDemo() {
   const [accountStates, setAccountStates] = useState<Record<string, AccountStatus>>(
-    () => Object.fromEntries(accounts.map((account) => [account.id, "frozen"])) as Record<string, AccountStatus>,
+    () =>
+      ({
+        alpha: "active",
+        beta: "frozen",
+        gamma: "frozen",
+      }) as Record<string, AccountStatus>,
   );
   const [selectedId, setSelectedId] = useState(accounts[0].id);
   const [phase, setPhase] = useState<Phase>("idle");
@@ -37,7 +42,7 @@ export function DefaultAccountStateDemo() {
   const recipientBalance = settled ? START_RECIPIENT + AMOUNT : START_RECIPIENT;
   const treasuryBalance = settled ? START_TREASURY - AMOUNT : START_TREASURY;
 
-  const statusLabel = useMemo(() => (selectedStatus === "active" ? "동결 해제" : "기본 동결"), [selectedStatus]);
+  const statusLabel = useMemo(() => (selectedStatus === "active" ? "전송 허용" : "전송 차단"), [selectedStatus]);
 
   const clearTimers = () => {
     timers.current.forEach(clearTimeout);
@@ -87,7 +92,11 @@ export function DefaultAccountStateDemo() {
 
   const reset = () => {
     clearTimers();
-    setAccountStates(Object.fromEntries(accounts.map((account) => [account.id, "frozen"])) as Record<string, AccountStatus>);
+    setAccountStates({
+      alpha: "active",
+      beta: "frozen",
+      gamma: "frozen",
+    });
     setSelectedId(accounts[0].id);
     setPhase("idle");
     setResult(null);
@@ -114,8 +123,7 @@ export function DefaultAccountStateDemo() {
 
         <div className="dasd-account-console">
           <div className="dasd-console-head">
-            <span>새로 생성된 토큰 계정</span>
-            <strong>계정별로 동결 해제합니다.</strong>
+            <span>계정 상태 관리</span>
           </div>
 
           <div className="dasd-account-list">
@@ -138,7 +146,8 @@ export function DefaultAccountStateDemo() {
                     <strong>{account.name}</strong>
                     <code>{account.addr}</code>
                   </span>
-                  <i>{state === "active" ? "동결 해제" : "기본 동결"}</i>
+                  <small>{account.note}</small>
+                  <i>{state === "active" ? "허용" : "동결"}</i>
                 </button>
               );
             })}
@@ -163,7 +172,7 @@ export function DefaultAccountStateDemo() {
           <div className="dasd-admin-panel">
             <div className="dasd-admin-head">
               <KeyRound size={15} aria-hidden="true" />
-              <span>계정 상태 변경</span>
+              <span>관리자 조치</span>
             </div>
             <div className="dasd-admin-actions">
               <button

@@ -243,15 +243,11 @@ export function TransferHookDemo() {
               </div>
               <div>
                 <span>자산 이름</span>
-                <strong>기관형 예금 토큰</strong>
+                <strong>예금 토큰</strong>
               </div>
               <div>
                 <span>네트워크</span>
                 <strong>솔라나</strong>
-              </div>
-              <div>
-                <span>전송 정책</span>
-                <strong>검증 Hook {configuredHooks.length}개 연결</strong>
               </div>
             </div>
 
@@ -363,7 +359,7 @@ export function TransferHookDemo() {
           <SuccessBurst show={phase === "done" && result === "fail"} tone="reject" />
           <div className="thd-runtime-core">
             <span>솔라나 네트워크</span>
-            <strong>토큰 익스텐션</strong>
+            <strong>Token Extensions</strong>
             <small>Transfer Hook 호출</small>
           </div>
           <div className="thd-runtime-list" aria-label="선택된 Hook 실행 순서">
@@ -385,7 +381,6 @@ export function TransferHookDemo() {
                   </span>
                   <div>
                     <strong>{hook.label}</strong>
-                    <small>{hook.example}</small>
                   </div>
                 </div>
               );

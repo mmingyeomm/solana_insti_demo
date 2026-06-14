@@ -1,5 +1,4 @@
 import { ExternalLink, GitFork } from "lucide-react";
-import { PrivateChannelAssetDemo } from "../components/PrivateChannelAssetDemo";
 import { PrivateChannelsShowcase } from "../components/PrivateChannelsShowcase";
 import { PrivateChannelUseCases } from "../components/PrivateChannelUseCases";
 import { SiteHeader } from "../components/SiteHeader";
@@ -20,21 +19,10 @@ export default function PrivateChannelsPage() {
       <section className="detail-section" id="structure">
         <div className="section-heading wide">
           <div>
-            <h2>기관별 Private Channel을 구성할 수 있습니다.</h2>
+            <h2>Private Channel 구성 방식</h2>
           </div>
-          <p>기관은 각자의 참여자와 거래 규칙에 맞춰 독립적인 채널을 구성할 수 있습니다.</p>
         </div>
         <PrivateChannelsShowcase />
-      </section>
-
-      <section className="detail-section" id="asset-flow">
-        <div className="section-heading wide">
-          <div>
-            <h2>메인넷 자산을 Private Channel로 이동하고 다시 정산합니다.</h2>
-          </div>
-          <p>자산 보관은 메인넷에 두고, 기관 간 거래 실행은 Private Channel에서 처리합니다.</p>
-        </div>
-        <PrivateChannelAssetDemo />
       </section>
 
       <section className="detail-section" id="use-cases">
@@ -42,7 +30,6 @@ export default function PrivateChannelsPage() {
           <div>
             <h2>Private Channels 활용 사례</h2>
           </div>
-          <p>민감한 거래 데이터는 채널 안에서 권한별로 관리됩니다.</p>
         </div>
         <PrivateChannelUseCases />
       </section>

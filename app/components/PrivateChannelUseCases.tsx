@@ -2,9 +2,7 @@
 
 import { type ReactNode, useState } from "react";
 import {
-  BadgeDollarSign,
   Building2,
-  ChevronDown,
   Coins,
   Database,
   EyeOff,
@@ -16,6 +14,7 @@ import {
   ShieldCheck,
   Wallet,
 } from "lucide-react";
+import { PrivateChannelAssetDemo } from "./PrivateChannelAssetDemo";
 
 type FlowKind = "issue" | "deposit" | "trade" | "transfer" | "monitor" | "withdraw" | "privacyWithdraw";
 
@@ -38,10 +37,7 @@ type Flow = {
 const scenarios = [
   {
     id: "securities",
-    icon: Scale,
     title: "증권거래",
-    cta: "증권거래 Private Channels 적용해보기",
-    summary: "주문자 정보는 감추고, 체결과 감독은 유지합니다.",
     note: "토큰 증권은 메인넷 에스크로에 잠근 뒤 채널 안에서 거래 잔액으로 사용합니다. 주문과 체결은 채널 내부 흐름으로 다룹니다.",
     flows: [
       {
@@ -104,10 +100,7 @@ const scenarios = [
   },
   {
     id: "stablecoin",
-    icon: BadgeDollarSign,
     title: "스테이블코인 발행 및 송금",
-    cta: "스테이블코인 발행 및 송금 적용해보기",
-    summary: "메인넷에서 발행한 자산을 채널로 이동해 비공개 결제로 씁니다.",
     note: "은행은 메인넷에서 스테이블코인을 발행하고, 결제에 사용할 수량만 에스크로에 잠급니다. 채널 안에서는 그 수량을 기준으로 은행 간 결제를 처리합니다.",
     flows: [
       {
@@ -391,7 +384,6 @@ function FlowVisual({ flow }: { flow: Flow }) {
 }
 
 export function PrivateChannelUseCases() {
-  const [openId, setOpenId] = useState(scenarios[0].id);
   const [activeFlows, setActiveFlows] = useState<Record<string, string>>({
     securities: "채널 이동",
     stablecoin: "발행",
@@ -400,37 +392,29 @@ export function PrivateChannelUseCases() {
   return (
     <div className="pc-case-accordion">
       {scenarios.map((item, index) => {
-        const Icon = item.icon;
-        const isOpen = item.id === openId;
         const activeFlowName = activeFlows[item.id] ?? item.flows[0].name;
         const activeFlow = item.flows.find((flow) => flow.name === activeFlowName) ?? item.flows[0];
+        const usesAssetDemo =
+          activeFlow.kind === "deposit" || activeFlow.kind === "withdraw" || activeFlow.kind === "privacyWithdraw";
+        const assetDemoAmount =
+          item.id === "securities" ? (activeFlow.kind === "deposit" ? "10,000주" : "8,000주") : "1,000 USDC";
+
         return (
-          <article className={isOpen ? "pc-case-item open" : "pc-case-item"} key={item.id}>
-            <button
-              aria-expanded={isOpen}
-              className="pc-case-trigger"
-              onClick={() => setOpenId(isOpen ? "" : item.id)}
-              type="button"
-            >
-              <span className="pc-case-index">{String(index + 1).padStart(2, "0")}</span>
-              <Icon size={20} aria-hidden="true" />
-              <span className="pc-case-title">
-                <strong>{item.title}</strong>
-                <span>{item.summary}</span>
-              </span>
-              <span className="pc-case-action">{item.cta}</span>
-              <ChevronDown size={18} aria-hidden="true" />
-            </button>
-
-            <div className={`demo-collapse ${isOpen ? "open" : ""}`}>
-              <div className="demo-collapse-inner">
-              <div className="pc-case-panel">
-                <div className="pc-case-panel-head">
-                  <p>{item.note}</p>
+          <article className="pc-case-item" key={item.id}>
+            <header className="pc-case-copy">
+              <div className="pc-case-copy-head">
+                <span className="pc-case-index">{String(index + 1).padStart(2, "0")}</span>
+                <div className="pc-case-title">
+                  <strong>{item.title}</strong>
                 </div>
+              </div>
+              <p>{item.note}</p>
+            </header>
 
-                <div className="pc-flow-tabs" aria-label={`${item.title} 플로우 선택`}>
-                  {item.flows.map((flow) => (
+            <div className="pc-case-demo-slot">
+              <div className="pc-case-workspace">
+                <div className="pc-flow-menu" aria-label={`${item.title} 플로우 선택`}>
+                  {item.flows.map((flow, flowIndex) => (
                     <button
                       className={flow.name === activeFlow.name ? "active" : ""}
                       key={flow.name}
@@ -442,26 +426,36 @@ export function PrivateChannelUseCases() {
                       }
                       type="button"
                     >
-                      {flow.name}
+                      <span>{String(flowIndex + 1).padStart(2, "0")}</span>
+                      <strong>{flow.name}</strong>
                     </button>
                   ))}
                 </div>
 
-                <section className="pc-case-focus" key={`${item.id}-${activeFlow.name}`}>
-                  <div className="pc-case-focus-copy">
-                    <span className="pc-flow-step">{activeFlow.name}</span>
-                    <h4>{activeFlow.title}</h4>
-                    <p>{activeFlow.desc}</p>
-                    <div className="pc-flow-points">
-                      {activeFlow.points.map((point) => (
-                        <span key={point}>{point}</span>
-                      ))}
+                <div className="pc-flow-stage">
+                  <section
+                    className={`pc-case-focus ${usesAssetDemo ? "asset-demo" : ""}`}
+                    key={`${item.id}-${activeFlow.name}`}
+                  >
+                    <div className="pc-case-focus-copy">
+                      <span className="pc-flow-step">{activeFlow.name}</span>
+                      <h4>{activeFlow.title}</h4>
+                      <p>{activeFlow.desc}</p>
                     </div>
-                  </div>
 
-                  <FlowVisual flow={activeFlow} />
-                </section>
-              </div>
+                    <div className="pc-case-visual-wrap">
+                      {usesAssetDemo ? (
+                        <PrivateChannelAssetDemo
+                          amount={assetDemoAmount}
+                          initialFlow={activeFlow.kind === "deposit" ? "toChannel" : "toMainnet"}
+                          showTabs={false}
+                        />
+                      ) : (
+                        <FlowVisual flow={activeFlow} />
+                      )}
+                    </div>
+                  </section>
+                </div>
               </div>
             </div>
           </article>

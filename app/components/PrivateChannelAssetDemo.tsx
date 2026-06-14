@@ -15,42 +15,43 @@ import {
 type FlowId = "toChannel" | "toMainnet";
 type Phase = "idle" | "toEscrow" | "locked" | "read" | "reflect" | "done";
 
-const AMOUNT = "1,000 USDC";
+const DEFAULT_AMOUNT = "1,000 USDC";
 const STEP_MS = 1050;
 
-const flows = {
-  toChannel: {
-    tab: "채널 이동",
-    title: "메인넷 에스크로 잠금을 확인한 뒤 Private Channel에 반영합니다.",
-    primary: "잠금 확인",
-    secondary: "채널 반영",
-    leftTitle: "솔라나 메인넷",
-    rightTitle: "Private Channel",
-    leftNodes: [
-      { icon: Wallet, label: "기관 지갑", idle: AMOUNT, done: "0 USDC" },
-      { icon: LockKeyhole, label: "에스크로", idle: "0 USDC", done: AMOUNT },
-    ],
-    syncNode: { icon: RefreshCw, label: "잠금 확인", idle: "대기", done: "확인 완료" },
-    rightNodes: [{ icon: Database, label: "채널 잔액", idle: "0 USDC", done: AMOUNT }],
-  },
-  toMainnet: {
-    tab: "메인넷 정산",
-    title: "채널 잔액을 소각하고 메인넷 자산 잠금을 해제합니다.",
-    primary: "burn 확인",
-    secondary: "잠금 해제",
-    leftTitle: "Private Channel",
-    rightTitle: "솔라나 메인넷",
-    leftNodes: [
-      { icon: Database, label: "채널 잔액", idle: AMOUNT, done: "0 USDC" },
-      { icon: Flame, label: "Withdraw", idle: "대기", done: "burn 완료" },
-    ],
-    syncNode: { icon: ShieldCheck, label: "SMT 검증", idle: "증명 대기", done: "검증 완료" },
-    rightNodes: [
-      { icon: LockKeyhole, label: "에스크로", idle: AMOUNT, done: "0 USDC" },
-      { icon: Wallet, label: "기관 지갑", idle: "0 USDC", done: AMOUNT },
-    ],
-  },
-} as const;
+const createFlows = (amount: string) =>
+  ({
+    toChannel: {
+      tab: "채널 이동",
+      title: "메인넷 에스크로 잠금을 확인한 뒤 Private Channel에 반영합니다.",
+      primary: "잠금 확인",
+      secondary: "채널 반영",
+      leftTitle: "솔라나 메인넷",
+      rightTitle: "Private Channel",
+      leftNodes: [
+        { icon: Wallet, label: "기관 지갑", idle: amount, done: "0" },
+        { icon: LockKeyhole, label: "에스크로", idle: "0", done: amount },
+      ],
+      syncNode: { icon: RefreshCw, label: "잠금 확인", idle: "대기", done: "확인 완료" },
+      rightNodes: [{ icon: Database, label: "채널 잔액", idle: "0", done: amount }],
+    },
+    toMainnet: {
+      tab: "메인넷 정산",
+      title: "채널 잔액을 소각하고 메인넷 자산 잠금을 해제합니다.",
+      primary: "burn 확인",
+      secondary: "잠금 해제",
+      leftTitle: "Private Channel",
+      rightTitle: "솔라나 메인넷",
+      leftNodes: [
+        { icon: Database, label: "채널 잔액", idle: amount, done: "0" },
+        { icon: Flame, label: "Withdraw", idle: "대기", done: "burn 완료" },
+      ],
+      syncNode: { icon: ShieldCheck, label: "SMT 검증", idle: "증명 대기", done: "검증 완료" },
+      rightNodes: [
+        { icon: LockKeyhole, label: "에스크로", idle: amount, done: "0" },
+        { icon: Wallet, label: "기관 지갑", idle: "0", done: amount },
+      ],
+    },
+  }) as const;
 
 function FlowCard({
   icon: Icon,
@@ -77,11 +78,20 @@ function FlowCard({
   );
 }
 
-export function PrivateChannelAssetDemo() {
-  const [flowId, setFlowId] = useState<FlowId>("toChannel");
+export function PrivateChannelAssetDemo({
+  amount = DEFAULT_AMOUNT,
+  initialFlow = "toChannel",
+  showTabs = true,
+}: {
+  amount?: string;
+  initialFlow?: FlowId;
+  showTabs?: boolean;
+}) {
+  const [flowId, setFlowId] = useState<FlowId>(initialFlow);
   const [phase, setPhase] = useState<Phase>("idle");
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
+  const flows = createFlows(amount);
   const flow = flows[flowId];
   const activeIndex =
     phase === "idle" ? -1 : phase === "toEscrow" || phase === "locked" ? 0 : phase === "read" ? 1 : 2;
@@ -119,7 +129,7 @@ export function PrivateChannelAssetDemo() {
     }
 
     if (flowId === "toChannel" && node.label === "에스크로") {
-      return phase === "idle" ? node.idle : phase === "toEscrow" ? "수신 중" : "1,000 USDC 잠금";
+      return phase === "idle" ? node.idle : phase === "toEscrow" ? "수신 중" : `${amount} 잠금`;
     }
 
     if (flowId === "toChannel" && node.label === "잠금 확인") {
@@ -194,15 +204,17 @@ export function PrivateChannelAssetDemo() {
   };
 
   return (
-    <div className={`pcad ${flowId} ${phase}`}>
+    <div className={`pcad ${flowId} ${phase} ${showTabs ? "" : "single-flow"}`}>
       <div className="pcad-toolbar">
-        <div className="pcad-tabs" aria-label="Private Channel 자산 이동 선택">
-          {(Object.keys(flows) as FlowId[]).map((id) => (
-            <button className={flowId === id ? "active" : ""} key={id} onClick={() => selectFlow(id)} type="button">
-              {flows[id].tab}
-            </button>
-          ))}
-        </div>
+        {showTabs ? (
+          <div className="pcad-tabs" aria-label="Private Channel 자산 이동 선택">
+            {(Object.keys(flows) as FlowId[]).map((id) => (
+              <button className={flowId === id ? "active" : ""} key={id} onClick={() => selectFlow(id)} type="button">
+                {flows[id].tab}
+              </button>
+            ))}
+          </div>
+        ) : null}
         <div className="pcad-actions">
           <button className="button button-muted" onClick={reset} type="button">
             <RotateCcw size={14} aria-hidden="true" />
@@ -218,11 +230,13 @@ export function PrivateChannelAssetDemo() {
       <section className="pcad-board" aria-label={`${flow.tab} 데모`} key={flowId}>
         <div className="pcad-network" aria-hidden="true" />
 
-        <header className="pcad-head">
-          <span>{flow.tab}</span>
-          <h3>{flow.title}</h3>
-          <strong>{AMOUNT}</strong>
-        </header>
+        {showTabs ? (
+          <header className="pcad-head">
+            <span>{flow.tab}</span>
+            <h3>{flow.title}</h3>
+            <strong>{amount}</strong>
+          </header>
+        ) : null}
 
         <div className="pcad-stage">
           <div
@@ -245,7 +259,7 @@ export function PrivateChannelAssetDemo() {
               ))}
               {phase === "toEscrow" ? (
                 <span className="pcad-internal-transfer" aria-hidden="true">
-                  {AMOUNT}
+                  {amount}
                 </span>
               ) : null}
             </div>

@@ -7,11 +7,17 @@ import { SuccessBurst } from "../SuccessBurst";
 type Stage = "setup" | "display";
 type TransferPhase = "idle" | "sending" | "done";
 type FeeRecipient = { id: number; label: string; ratePercent: number; cap: number };
+type MerchantId = "local" | "online" | "crossBorder";
 
 const AMOUNT = 1000;
 const MAX_RECIPIENTS = 2;
 
 const defaultLabels = ["발행자", "플랫폼"];
+const merchants: Record<MerchantId, { label: string; caption: string; ratePercent: number; cap: number }> = {
+  local: { label: "일반 가맹점", caption: "표준 결제 요율", ratePercent: 0.2, cap: 3 },
+  online: { label: "온라인 가맹점", caption: "정산 리스크 반영", ratePercent: 0.45, cap: 5 },
+  crossBorder: { label: "해외 가맹점", caption: "해외 정산 비용 반영", ratePercent: 0.8, cap: 8 },
+};
 
 const createRecipient = (id: number, index: number): FeeRecipient => ({
   id,
@@ -22,24 +28,29 @@ const createRecipient = (id: number, index: number): FeeRecipient => ({
 
 export function TransferFeeDemo() {
   const [stage, setStage] = useState<Stage>("setup");
+  const [merchantId, setMerchantId] = useState<MerchantId>("local");
   const [feeRecipients, setFeeRecipients] = useState<FeeRecipient[]>([]);
   const [phase, setPhase] = useState<TransferPhase>("idle");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const nextId = useRef(1);
 
-  const { fee, net, perRecipientFees } = useMemo(() => {
+  const merchant = merchants[merchantId];
+
+  const { fee, net, perRecipientFees, merchantFee } = useMemo(() => {
+    const baseFee = Math.min(AMOUNT * (merchant.ratePercent / 100), merchant.cap);
     const fees = feeRecipients.map((recipient) => ({
       id: recipient.id,
       label: recipient.label,
       amount: Math.min(AMOUNT * (recipient.ratePercent / 100), recipient.cap),
     }));
-    const totalFee = fees.reduce((sum, item) => sum + item.amount, 0);
+    const totalFee = baseFee + fees.reduce((sum, item) => sum + item.amount, 0);
     return {
       fee: totalFee,
       net: AMOUNT - totalFee,
-      perRecipientFees: fees,
+      merchantFee: baseFee,
+      perRecipientFees: [{ id: 0, label: merchant.label, amount: baseFee }, ...fees],
     };
-  }, [feeRecipients]);
+  }, [feeRecipients, merchant]);
 
   const addRecipient = () => {
     setFeeRecipients((current) => {
@@ -93,7 +104,7 @@ export function TransferFeeDemo() {
   const delivered = phase === "done";
   const running = phase === "sending";
   const activeFlow = running;
-  const hasFee = feeRecipients.length > 0;
+  const hasFee = fee > 0;
 
   if (stage === "setup") {
     return (
@@ -113,7 +124,32 @@ export function TransferFeeDemo() {
             </div>
 
             <div className="tfd-subject-control">
-              <span>수수료 수취처</span>
+              <span>가맹점별 기본 요율</span>
+            </div>
+
+            <div className="tfd-merchant-grid" aria-label="가맹점 요율 선택">
+              {(Object.keys(merchants) as MerchantId[]).map((key) => {
+                const item = merchants[key];
+
+                return (
+                  <button
+                    className={merchantId === key ? "active" : ""}
+                    key={key}
+                    onClick={() => setMerchantId(key)}
+                    type="button"
+                  >
+                    <strong>{item.label}</strong>
+                    <span>{item.caption}</span>
+                    <code>
+                      {item.ratePercent.toFixed(2)}%, 상한 {item.cap} USDC
+                    </code>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="tfd-subject-control">
+              <span>추가 수수료 수취처</span>
               <button
                 className="tfd-add-subject"
                 disabled={feeRecipients.length >= MAX_RECIPIENTS}
@@ -178,12 +214,14 @@ export function TransferFeeDemo() {
               </div>
             ) : (
               <div className="tfd-subject-empty">
-                수수료 수취처가 없습니다. 전송 금액 전액이 수신 지갑으로 전달됩니다.
+                추가 수취처가 없습니다. 가맹점 기본 요율만 적용됩니다.
               </div>
             )}
 
             <div className="tfd-split">
-              <span>예상 수수료 {fee.toFixed(2)} USDC</span>
+              <span>
+                {merchant.label} 기본 수수료 {merchantFee.toFixed(2)} USDC
+              </span>
               <strong>예상 순수령액 {net.toFixed(2)} USDC</strong>
             </div>
 
@@ -205,7 +243,7 @@ export function TransferFeeDemo() {
           정책 수정
         </button>
         <span>
-          수수료 수취처 {feeRecipients.length}곳, 총 수수료 {fee.toFixed(2)} USDC
+          {merchant.label} {merchant.ratePercent.toFixed(2)}%, 총 수수료 {fee.toFixed(2)} USDC
         </span>
         <button className="button button-dark" disabled={running} onClick={runTransfer} type="button">
           {running ? <Loader2 className="mrd-spin" size={14} aria-hidden="true" /> : <ArrowRight size={14} aria-hidden="true" />}
@@ -235,15 +273,15 @@ export function TransferFeeDemo() {
               <Percent size={20} aria-hidden="true" />
             </span>
             <div>
-              <span>토큰 익스텐션</span>
+              <span>Token Extensions</span>
               <strong>Transfer Fee</strong>
             </div>
           </div>
 
           <div className="tfd-rule-grid">
             <div>
-              <span>수수료 수취처</span>
-              <strong>{feeRecipients.length}곳</strong>
+              <span>가맹점 정책</span>
+              <strong>{merchant.label}</strong>
             </div>
             <div>
               <span>총 수수료</span>
@@ -252,7 +290,9 @@ export function TransferFeeDemo() {
           </div>
 
           <div className="tfd-split">
-            <span>수수료 {fee.toFixed(2)} USDC</span>
+            <span>
+              기본 요율 {merchant.ratePercent.toFixed(2)}%, 상한 {merchant.cap} USDC
+            </span>
             <strong>순수령액 {net.toFixed(2)} USDC</strong>
           </div>
         </div>

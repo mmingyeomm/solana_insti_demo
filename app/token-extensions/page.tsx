@@ -1,4 +1,4 @@
-import { Coins, FileText, Globe, Landmark, PlayCircle } from "lucide-react";
+import { ExternalLink, FileText, PlayCircle } from "lucide-react";
 import { SiteHeader } from "../components/SiteHeader";
 import { TokenFeatureAccordion } from "../components/TokenFeatureAccordion";
 
@@ -37,22 +37,31 @@ const moreExtensions = [
 
 const cases = [
   {
-    icon: Landmark,
     title: "PYUSD",
     issuer: "PayPal, Paxos",
-    body: "PayPal의 달러 스테이블코인 PYUSD는 솔라나에서 Token Extensions를 활용한 대표 사례입니다. 전송 제어, 규제 대응, 수수료 정책 등 기관형 스테이블코인 운영에 필요한 기능을 토큰 레벨에서 적용할 수 있도록 설계되었습니다.",
+    image: "/cases/pyusd.png",
+    imageAlt: "PYUSD logo",
+    source: "공식 자료 보기",
+    href: "https://developer.paypal.com/community/blog/pyusd-solana-token-extensions/",
+    body: "PayPal 결제 생태계와 연결되는 달러 스테이블코인입니다.",
   },
   {
-    icon: Coins,
     title: "USDP",
     issuer: "Paxos",
-    body: "Paxos의 규제형 달러 스테이블코인 USDP는 솔라나 Token Extensions를 통해 발행자 권한과 전송 정책을 토큰 단위로 관리합니다. 이를 통해 규제 준수에 필요한 운영 통제를 자산 자체에 반영할 수 있습니다.",
+    image: "/cases/usdp.png",
+    imageAlt: "USDP logo",
+    source: "공식 자료 보기",
+    href: "https://www.paxos.com/usdp",
+    body: "규제형 달러 자산 발행 인프라를 대표하는 Paxos의 스테이블코인입니다.",
   },
   {
-    icon: Globe,
     title: "GYEN 및 ZUSD",
     issuer: "GMO Trust",
-    body: "GMO Trust의 엔화 및 달러 스테이블코인인 GYEN과 ZUSD는 솔라나 기반 발행 과정에서 Token Extensions를 활용한 사례입니다. 발행자는 자산별 규제 요건에 맞춰 권한, 전송 상태, 메타데이터 등 주요 정책을 토큰 단위로 운영할 수 있습니다.",
+    image: "/cases/gyen-zusd.png",
+    imageAlt: "GYEN and ZUSD logos",
+    source: "공식 자료 보기",
+    href: "https://stablecoin.z.com/lp/solana/",
+    body: "엔화와 달러를 온체인 자산으로 연결하는 GMO Trust의 스테이블코인입니다.",
   },
 ];
 
@@ -63,7 +72,7 @@ export default function TokenExtensionsPage() {
 
       <section className="token-intro">
         <div className="token-intro-copy">
-          <h1>토큰 익스텐션 기반 기관 정책 내장</h1>
+          <h1>Token Extensions 기반 기관 정책 내장</h1>
           <p>전송 통제, 정보 공개 범위, 이자와 수수료 등 기관 운영에 필요한 정책을 별도 시스템에 의존하지 않고 토큰 레벨에서 직접 설정하고 관리합니다.</p>
         </div>
       </section>
@@ -94,23 +103,31 @@ export default function TokenExtensionsPage() {
       </section>
 
       <section className="detail-section" id="cases">
-        <div className="section-heading">
-          <h2>토큰 익스텐션을 적용한 주요 스테이블코인 사례</h2>
+        <div className="section-heading wide">
+          <div>
+            <h2>공식 사례 기반으로 확인하는 Token Extensions 활용</h2>
+          </div>
+          <p>실제 발행사와 제품 페이지에 공개된 자료를 기준으로, Token Extensions가 어떤 기관형 자산에 연결되는지 확인합니다.</p>
         </div>
-        <div className="case-grid">
-          {cases.map((item) => {
-            const Icon = item.icon;
-            return (
-              <article className="case-card" key={item.title}>
-                <Icon size={22} aria-hidden="true" />
+        <div className="case-grid official-case-grid">
+          {cases.map((item) => (
+            <article className="case-card official-case-card" key={item.title}>
+              <div className="official-case-media">
+                <img alt={item.imageAlt} src={item.image} />
+              </div>
+              <div className="official-case-copy">
                 <div className="case-card-title">
                   <h3>{item.title}</h3>
                   <span>{item.issuer}</span>
                 </div>
                 <p>{item.body}</p>
-              </article>
-            );
-          })}
+                <a className="official-case-link" href={item.href} rel="noreferrer" target="_blank">
+                  <ExternalLink size={14} aria-hidden="true" />
+                  {item.source}
+                </a>
+              </div>
+            </article>
+          ))}
         </div>
       </section>
 

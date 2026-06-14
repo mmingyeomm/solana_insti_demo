@@ -104,7 +104,7 @@ export function InterestBearingTokenDemo() {
               <TrendingUp size={20} aria-hidden="true" />
             </span>
             <div>
-              <span>토큰 익스텐션</span>
+              <span>Token Extensions</span>
               <strong>Interest Bearing Token</strong>
             </div>
           </div>

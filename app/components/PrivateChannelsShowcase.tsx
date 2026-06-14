@@ -57,7 +57,6 @@ export function PrivateChannelsShowcase() {
         </div>
 
         <div className="pc-config-mainnet">
-          <span>공통 연결 지점</span>
           <strong>솔라나 메인넷</strong>
           <p>기관별 채널은 독립적으로 구성되지만, 자산 이동과 정산 검증은 솔라나 메인넷을 통해 관리합니다.</p>
         </div>

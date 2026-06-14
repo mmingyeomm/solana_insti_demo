@@ -28,8 +28,8 @@ export function ConfidentialTransferDemo() {
           <div className="ctd-key-face" aria-hidden="true">
             {keyApplied ? <ShieldCheck size={20} aria-hidden="true" /> : <KeyRound size={20} aria-hidden="true" />}
             <span>
-              <strong>{keyApplied ? "키 적용됨" : "조회 권한"}</strong>
-              <code>송신자 / 수신자 / 감사자</code>
+              <strong>{keyApplied ? "감사 조회 승인" : "비공개 결제 기록"}</strong>
+              <code>{keyApplied ? "권한 주체가 금액과 잔액 확인" : "외부에는 금액과 잔액 비공개"}</code>
             </span>
           </div>
         </div>
@@ -37,7 +37,7 @@ export function ConfidentialTransferDemo() {
         <div className="ctd-wallet">
           <div className="ctd-wallet-head">
             <Wallet size={15} aria-hidden="true" />
-            보내는 사람
+            보내는 계정
           </div>
           <code>Send...8xQ</code>
           <strong>{keyApplied ? SENDER_BALANCE : "계정 잔액 비공개"}</strong>
@@ -53,13 +53,13 @@ export function ConfidentialTransferDemo() {
               <LockKeyhole size={22} aria-hidden="true" />
             </span>
             <div>
-              <span>토큰 익스텐션</span>
+              <span>Token Extensions</span>
               <strong>Confidential Transfer</strong>
             </div>
           </div>
 
           <div className={`ctd-cipher ${keyApplied ? "unlocked" : ""}`}>
-            <span>{keyApplied ? "권한 있는 주체가 확인한 전송 금액" : "공개 기록의 암호화된 금액"}</span>
+            <span>{keyApplied ? "감사 조회로 확인한 전송 금액" : "공개 기록의 암호화된 금액"}</span>
             <strong>{keyApplied ? AMOUNT : "8F A2 19 C7"}</strong>
           </div>
         </div>
@@ -71,7 +71,7 @@ export function ConfidentialTransferDemo() {
         <div className="ctd-wallet recipient">
           <div className="ctd-wallet-head">
             <Wallet size={15} aria-hidden="true" />
-            받는 사람
+            받는 계정
           </div>
           <code>Rcpt...4qN</code>
           <strong>{keyApplied ? RECIPIENT_BALANCE : "계정 잔액 비공개"}</strong>

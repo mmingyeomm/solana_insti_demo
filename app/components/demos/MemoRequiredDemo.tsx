@@ -122,7 +122,6 @@ export function MemoRequiredDemo() {
               )}
             </span>
             <div>
-              <span>토큰 익스텐션</span>
               <strong>Memo Required</strong>
             </div>
           </div>
