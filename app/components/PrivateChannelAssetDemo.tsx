@@ -14,12 +14,40 @@ import {
 
 type FlowId = "toChannel" | "toMainnet";
 type Phase = "idle" | "toEscrow" | "locked" | "read" | "reflect" | "done";
+type DemoContext = "default" | "securities" | "stablecoin";
 
 const DEFAULT_AMOUNT = "1,000 USDC";
 const STEP_MS = 1050;
 
-const createFlows = (amount: string) =>
-  ({
+const contextLabels: Record<
+  DemoContext,
+  {
+    wallet: string;
+    escrow: string;
+    balance: string;
+  }
+> = {
+  default: {
+    wallet: "기관 지갑",
+    escrow: "에스크로",
+    balance: "채널 잔액",
+  },
+  securities: {
+    wallet: "증권사 지갑",
+    escrow: "토큰 증권 에스크로",
+    balance: "거래 잔액",
+  },
+  stablecoin: {
+    wallet: "은행 지갑",
+    escrow: "스테이블코인 에스크로",
+    balance: "결제 잔액",
+  },
+};
+
+const createFlows = (amount: string, context: DemoContext) => {
+  const labels = contextLabels[context];
+
+  return {
     toChannel: {
       tab: "채널 이동",
       title: "메인넷 에스크로 잠금을 확인한 뒤 Private Channel에 반영합니다.",
@@ -28,11 +56,11 @@ const createFlows = (amount: string) =>
       leftTitle: "솔라나 메인넷",
       rightTitle: "Private Channel",
       leftNodes: [
-        { icon: Wallet, label: "기관 지갑", idle: amount, done: "0" },
-        { icon: LockKeyhole, label: "에스크로", idle: "0", done: amount },
+        { icon: Wallet, label: labels.wallet, idle: amount, done: "0" },
+        { icon: LockKeyhole, label: labels.escrow, idle: "0", done: amount },
       ],
       syncNode: { icon: RefreshCw, label: "잠금 확인", idle: "대기", done: "확인 완료" },
-      rightNodes: [{ icon: Database, label: "채널 잔액", idle: "0", done: amount }],
+      rightNodes: [{ icon: Database, label: labels.balance, idle: "0", done: amount }],
     },
     toMainnet: {
       tab: "메인넷 정산",
@@ -42,16 +70,17 @@ const createFlows = (amount: string) =>
       leftTitle: "Private Channel",
       rightTitle: "솔라나 메인넷",
       leftNodes: [
-        { icon: Database, label: "채널 잔액", idle: amount, done: "0" },
+        { icon: Database, label: labels.balance, idle: amount, done: "0" },
         { icon: Flame, label: "Withdraw", idle: "대기", done: "burn 완료" },
       ],
       syncNode: { icon: ShieldCheck, label: "SMT 검증", idle: "증명 대기", done: "검증 완료" },
       rightNodes: [
-        { icon: LockKeyhole, label: "에스크로", idle: amount, done: "0" },
-        { icon: Wallet, label: "기관 지갑", idle: "0", done: amount },
+        { icon: LockKeyhole, label: labels.escrow, idle: amount, done: "0" },
+        { icon: Wallet, label: labels.wallet, idle: "0", done: amount },
       ],
     },
-  }) as const;
+  } as const;
+};
 
 function FlowCard({
   icon: Icon,
@@ -80,10 +109,12 @@ function FlowCard({
 
 export function PrivateChannelAssetDemo({
   amount = DEFAULT_AMOUNT,
+  context = "default",
   initialFlow = "toChannel",
   showTabs = true,
 }: {
   amount?: string;
+  context?: DemoContext;
   initialFlow?: FlowId;
   showTabs?: boolean;
 }) {
@@ -91,8 +122,9 @@ export function PrivateChannelAssetDemo({
   const [phase, setPhase] = useState<Phase>("idle");
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
-  const flows = createFlows(amount);
+  const flows = createFlows(amount, context);
   const flow = flows[flowId];
+  const labels = contextLabels[context];
   const activeIndex =
     phase === "idle" ? -1 : phase === "toEscrow" || phase === "locked" ? 0 : phase === "read" ? 1 : 2;
   const complete = phase === "done";
@@ -124,11 +156,11 @@ export function PrivateChannelAssetDemo({
   };
 
   const valueFor = (node: { label: string; idle: string; done: string }) => {
-    if (flowId === "toChannel" && node.label === "기관 지갑") {
+    if (flowId === "toChannel" && node.label === labels.wallet) {
       return phase === "idle" ? node.idle : phase === "toEscrow" ? "전송 중" : node.done;
     }
 
-    if (flowId === "toChannel" && node.label === "에스크로") {
+    if (flowId === "toChannel" && node.label === labels.escrow) {
       return phase === "idle" ? node.idle : phase === "toEscrow" ? "수신 중" : `${amount} 잠금`;
     }
 
@@ -140,11 +172,11 @@ export function PrivateChannelAssetDemo({
           : node.done;
     }
 
-    if (flowId === "toChannel" && node.label === "채널 잔액") {
+    if (flowId === "toChannel" && node.label === labels.balance) {
       return phase === "reflect" ? "반영 중" : complete ? node.done : node.idle;
     }
 
-    if (flowId === "toMainnet" && node.label === "채널 잔액") {
+    if (flowId === "toMainnet" && node.label === labels.balance) {
       return phase === "idle" ? node.idle : phase === "toEscrow" ? "burn 중" : node.done;
     }
 
@@ -160,11 +192,11 @@ export function PrivateChannelAssetDemo({
           : node.done;
     }
 
-    if (flowId === "toMainnet" && node.label === "에스크로") {
+    if (flowId === "toMainnet" && node.label === labels.escrow) {
       return phase === "reflect" ? "잠금 해제 중" : complete ? node.done : node.idle;
     }
 
-    if (flowId === "toMainnet" && node.label === "기관 지갑") {
+    if (flowId === "toMainnet" && node.label === labels.wallet) {
       return phase === "reflect" ? "수령 중" : complete ? node.done : node.idle;
     }
 
@@ -172,33 +204,33 @@ export function PrivateChannelAssetDemo({
   };
 
   const isCardActive = (label: string, group: "left" | "sync" | "right") => {
-    if (flowId === "toChannel" && label === "기관 지갑") return phase === "toEscrow";
-    if (flowId === "toChannel" && label === "에스크로") return phase === "toEscrow" || phase === "locked" || phase === "read";
+    if (flowId === "toChannel" && label === labels.wallet) return phase === "toEscrow";
+    if (flowId === "toChannel" && label === labels.escrow) return phase === "toEscrow" || phase === "locked" || phase === "read";
     if (flowId === "toChannel" && label === "잠금 확인") return phase === "read";
-    if (flowId === "toChannel" && label === "채널 잔액") return phase === "reflect";
+    if (flowId === "toChannel" && label === labels.balance) return phase === "reflect";
 
-    if (flowId === "toMainnet" && label === "채널 잔액") return phase === "toEscrow";
+    if (flowId === "toMainnet" && label === labels.balance) return phase === "toEscrow";
     if (flowId === "toMainnet" && label === "Withdraw") return phase === "toEscrow" || phase === "locked" || phase === "read";
     if (flowId === "toMainnet" && label === "SMT 검증") return phase === "read";
-    if (flowId === "toMainnet" && label === "에스크로") return phase === "reflect";
-    if (flowId === "toMainnet" && label === "기관 지갑") return phase === "reflect";
+    if (flowId === "toMainnet" && label === labels.escrow) return phase === "reflect";
+    if (flowId === "toMainnet" && label === labels.wallet) return phase === "reflect";
     return false;
   };
 
   const isCardComplete = (label: string, group: "left" | "sync" | "right") => {
     if (complete) return true;
-    if (flowId === "toChannel" && label === "기관 지갑") return phase === "locked" || phase === "read" || phase === "reflect";
-    if (flowId === "toChannel" && label === "에스크로") return phase === "locked" || phase === "read" || phase === "reflect";
+    if (flowId === "toChannel" && label === labels.wallet) return phase === "locked" || phase === "read" || phase === "reflect";
+    if (flowId === "toChannel" && label === labels.escrow) return phase === "locked" || phase === "read" || phase === "reflect";
     if (flowId === "toChannel" && label === "잠금 확인") return phase === "reflect";
 
-    if (flowId === "toMainnet" && label === "채널 잔액") return phase === "locked" || phase === "read" || phase === "reflect";
+    if (flowId === "toMainnet" && label === labels.balance) return phase === "locked" || phase === "read" || phase === "reflect";
     if (flowId === "toMainnet" && label === "Withdraw") return phase === "locked" || phase === "read" || phase === "reflect";
     if (flowId === "toMainnet" && label === "SMT 검증") return phase === "reflect";
     return false;
   };
 
   const badgeFor = (label: string) => {
-    if (flowId === "toChannel" && label === "에스크로" && phase === "locked") return "잠금 완료";
+    if (flowId === "toChannel" && label === labels.escrow && phase === "locked") return "잠금 완료";
     if (flowId === "toMainnet" && label === "Withdraw" && phase === "locked") return "burn 완료";
     return undefined;
   };

@@ -38,7 +38,7 @@ const moreExtensions = [
 const cases = [
   {
     title: "PYUSD",
-    issuer: "PayPal, Paxos",
+    issuer: "PayPal",
     image: "/cases/pyusd.png",
     imageAlt: "PYUSD logo",
     source: "공식 자료 보기",
@@ -55,13 +55,13 @@ const cases = [
     body: "규제형 달러 자산 발행 인프라를 대표하는 Paxos의 스테이블코인입니다.",
   },
   {
-    title: "GYEN 및 ZUSD",
-    issuer: "GMO Trust",
-    image: "/cases/gyen-zusd.png",
-    imageAlt: "GYEN and ZUSD logos",
+    title: "USDG",
+    issuer: "Global Dollar Network",
+    image: "/cases/usdg.png",
+    imageAlt: "USDG logo",
     source: "공식 자료 보기",
-    href: "https://stablecoin.z.com/lp/solana/",
-    body: "엔화와 달러를 온체인 자산으로 연결하는 GMO Trust의 스테이블코인입니다.",
+    href: "https://www.globaldollar.com/",
+    body: "글로벌 달러 네트워크가 발행하는 솔라나 기반 달러 스테이블코인입니다.",
   },
 ];
 
@@ -84,9 +84,8 @@ export default function TokenExtensionsPage() {
       <section className="detail-section" id="more-extensions">
         <div className="section-heading wide">
           <div>
-            <h2>기관 자산 운영에 필요한 설정을 토큰 자체에 반영합니다.</h2>
+            <h2>앞서 소개한 기능 외에도 다양한 Token Extensions를 활용할 수 있습니다.</h2>
           </div>
-          <p>발행자는 전송 제한, 메타데이터 관리, 접근 제어, 운영 권한을 자산별 요건에 맞게 설계할 수 있습니다.</p>
         </div>
 
         <div className="token-more-list">
@@ -107,7 +106,6 @@ export default function TokenExtensionsPage() {
           <div>
             <h2>공식 사례 기반으로 확인하는 Token Extensions 활용</h2>
           </div>
-          <p>실제 발행사와 제품 페이지에 공개된 자료를 기준으로, Token Extensions가 어떤 기관형 자산에 연결되는지 확인합니다.</p>
         </div>
         <div className="case-grid official-case-grid">
           {cases.map((item) => (

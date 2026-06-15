@@ -447,6 +447,7 @@ export function PrivateChannelUseCases() {
                       {usesAssetDemo ? (
                         <PrivateChannelAssetDemo
                           amount={assetDemoAmount}
+                          context={item.id === "securities" ? "securities" : "stablecoin"}
                           initialFlow={activeFlow.kind === "deposit" ? "toChannel" : "toMainnet"}
                           showTabs={false}
                         />

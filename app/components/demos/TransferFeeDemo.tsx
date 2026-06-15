@@ -1,22 +1,24 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, Landmark, Loader2, Percent, Plus, SlidersHorizontal, Wallet, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft, ArrowRight, Landmark, Loader2, Percent, Plus, RotateCcw, SlidersHorizontal, Wallet, X } from "lucide-react";
 import { SuccessBurst } from "../SuccessBurst";
 
 type Stage = "setup" | "display";
-type TransferPhase = "idle" | "sending" | "done";
+type TransferPhase = "idle" | "toPolicy" | "splitting" | "done";
 type FeeRecipient = { id: number; label: string; ratePercent: number; cap: number };
 type MerchantId = "local" | "online" | "crossBorder";
 
 const AMOUNT = 1000;
 const MAX_RECIPIENTS = 2;
+const TO_POLICY_MS = 1000;
+const SPLIT_MS = 1000;
 
 const defaultLabels = ["발행자", "플랫폼"];
 const merchants: Record<MerchantId, { label: string; caption: string; ratePercent: number; cap: number }> = {
-  local: { label: "일반 가맹점", caption: "표준 결제 요율", ratePercent: 0.2, cap: 3 },
-  online: { label: "온라인 가맹점", caption: "정산 리스크 반영", ratePercent: 0.45, cap: 5 },
-  crossBorder: { label: "해외 가맹점", caption: "해외 정산 비용 반영", ratePercent: 0.8, cap: 8 },
+  local: { label: "일반", caption: "표준 결제", ratePercent: 0.2, cap: 3 },
+  online: { label: "온라인", caption: "온라인 정산", ratePercent: 0.45, cap: 5 },
+  crossBorder: { label: "해외", caption: "해외 정산", ratePercent: 0.8, cap: 8 },
 };
 
 const createRecipient = (id: number, index: number): FeeRecipient => ({
@@ -31,7 +33,7 @@ export function TransferFeeDemo() {
   const [merchantId, setMerchantId] = useState<MerchantId>("local");
   const [feeRecipients, setFeeRecipients] = useState<FeeRecipient[]>([]);
   const [phase, setPhase] = useState<TransferPhase>("idle");
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const nextId = useRef(1);
 
   const merchant = merchants[merchantId];
@@ -73,37 +75,39 @@ export function TransferFeeDemo() {
     );
   };
 
-  const clearTimer = () => {
-    if (timer.current) {
-      clearTimeout(timer.current);
-      timer.current = null;
-    }
+  const clearTimers = () => {
+    timers.current.forEach(clearTimeout);
+    timers.current = [];
   };
 
+  useEffect(() => clearTimers, []);
+
   const runTransfer = () => {
-    clearTimer();
-    setPhase("sending");
-    timer.current = setTimeout(() => {
-      setPhase("done");
-      timer.current = null;
-    }, 1250);
+    clearTimers();
+    setPhase("toPolicy");
+    timers.current.push(setTimeout(() => setPhase("splitting"), TO_POLICY_MS));
+    timers.current.push(setTimeout(() => setPhase("done"), TO_POLICY_MS + SPLIT_MS));
+  };
+
+  const resetTransfer = () => {
+    clearTimers();
+    setPhase("idle");
   };
 
   const goSetup = () => {
-    clearTimer();
-    setPhase("idle");
+    resetTransfer();
     setStage("setup");
   };
 
   const goDisplay = () => {
-    clearTimer();
-    setPhase("idle");
+    resetTransfer();
     setStage("display");
   };
 
   const delivered = phase === "done";
-  const running = phase === "sending";
-  const activeFlow = running;
+  const running = phase === "toPolicy" || phase === "splitting";
+  const inboundFlow = phase !== "idle";
+  const outboundFlow = phase === "splitting" || phase === "done";
   const hasFee = fee > 0;
 
   if (stage === "setup") {
@@ -118,13 +122,9 @@ export function TransferFeeDemo() {
                 <SlidersHorizontal size={20} aria-hidden="true" />
               </span>
               <div>
-                <span>토큰 정책 설정</span>
-                <strong>전송 수수료 조건과 수취처를 설정합니다.</strong>
+                <span>수수료 정책</span>
+                <strong>가맹점별 요율과 수취처를 정합니다.</strong>
               </div>
-            </div>
-
-            <div className="tfd-subject-control">
-              <span>가맹점별 기본 요율</span>
             </div>
 
             <div className="tfd-merchant-grid" aria-label="가맹점 요율 선택">
@@ -139,17 +139,14 @@ export function TransferFeeDemo() {
                     type="button"
                   >
                     <strong>{item.label}</strong>
-                    <span>{item.caption}</span>
-                    <code>
-                      {item.ratePercent.toFixed(2)}%, 상한 {item.cap} USDC
-                    </code>
+                    <code>{item.ratePercent.toFixed(2)}%</code>
                   </button>
                 );
               })}
             </div>
 
             <div className="tfd-subject-control">
-              <span>추가 수수료 수취처</span>
+              <span>수취처</span>
               <button
                 className="tfd-add-subject"
                 disabled={feeRecipients.length >= MAX_RECIPIENTS}
@@ -213,16 +210,14 @@ export function TransferFeeDemo() {
                 ))}
               </div>
             ) : (
-              <div className="tfd-subject-empty">
-                추가 수취처가 없습니다. 가맹점 기본 요율만 적용됩니다.
-              </div>
+              <div className="tfd-subject-empty" aria-hidden="true" />
             )}
 
             <div className="tfd-split">
               <span>
-                {merchant.label} 기본 수수료 {merchantFee.toFixed(2)} USDC
+                수수료 {merchantFee.toFixed(2)} USDC
               </span>
-              <strong>예상 순수령액 {net.toFixed(2)} USDC</strong>
+              <strong>순수령액 {net.toFixed(2)} USDC</strong>
             </div>
 
             <button className="button button-dark" onClick={goDisplay} type="button">
@@ -243,28 +238,74 @@ export function TransferFeeDemo() {
           정책 수정
         </button>
         <span>
-          {merchant.label} {merchant.ratePercent.toFixed(2)}%, 총 수수료 {fee.toFixed(2)} USDC
+          정책 적용 완료. 총 수수료 {fee.toFixed(2)} USDC
         </span>
-        <button className="button button-dark" disabled={running} onClick={runTransfer} type="button">
-          {running ? <Loader2 className="mrd-spin" size={14} aria-hidden="true" /> : <ArrowRight size={14} aria-hidden="true" />}
-          {running ? "전송 중" : delivered ? "다시 전송" : "전송 실행"}
-        </button>
       </div>
 
-      <section className={`tfd-stage ${phase}`} aria-label="Transfer Fee 수수료 분리 흐름">
+      <section className={`tfd-stage tfd-phone-stage ${phase}`} aria-label="Transfer Fee 수수료 분리 흐름">
         <div className="tfd-network" aria-hidden="true" />
 
-        <div className="tfd-wallet">
-          <div className="tfd-node-title">
-            <Wallet size={15} aria-hidden="true" />
-            보내는 지갑
+        <div className="mrd-phone-shell tfd-phone-shell">
+          <span className="mrd-phone-notch" aria-hidden="true" />
+          <div className="mrd-phone-screen">
+            <div className="mrd-app-bar">
+              <span>결제 지갑</span>
+              <code>Pay...7mK</code>
+            </div>
+
+            <div className="mrd-phone-content">
+              <div className="mrd-phone-top">
+                <strong>전송 확인</strong>
+                <span>×</span>
+              </div>
+
+              <div className="mrd-token-mark" aria-hidden="true">
+                <img alt="" src="/usdc.svg" />
+              </div>
+
+              <div className="mrd-send-amount">
+                <strong>{AMOUNT.toLocaleString()}</strong>
+                <span>USDC</span>
+                <small>전송 후 수수료 자동 분리</small>
+              </div>
+
+              <div className="mrd-confirm-stack">
+                <div className="mrd-phone-row">
+                  <span>받는 사람</span>
+                  <code>Mrch...9Qp</code>
+                </div>
+                <div className="mrd-phone-row">
+                  <span>수수료 정책</span>
+                  <code>{merchant.label} {merchant.ratePercent.toFixed(2)}%</code>
+                </div>
+                <div className="mrd-phone-row">
+                  <span>예상 수수료</span>
+                  <code>{fee.toFixed(2)} USDC</code>
+                </div>
+                <div className="mrd-phone-row muted">
+                  <span>네트워크</span>
+                  <code>솔라나</code>
+                </div>
+              </div>
+
+              <div className="mrd-phone-actions">
+                <button className="mrd-reset-button" onClick={resetTransfer} type="button" aria-label="초기화">
+                  <RotateCcw size={15} aria-hidden="true" />
+                </button>
+                <button className="mrd-send-button" disabled={running} onClick={runTransfer} type="button">
+                  {running ? <Loader2 className="mrd-spin" size={15} aria-hidden="true" /> : <ArrowRight size={15} aria-hidden="true" />}
+                  {running ? "전송 중" : delivered ? "다시 전송" : "전송 실행"}
+                </button>
+              </div>
+            </div>
+
+            <span className="mrd-home-bar" aria-hidden="true" />
           </div>
-          <strong>{AMOUNT.toLocaleString()} USDC</strong>
-          <span>전송 금액</span>
         </div>
 
-        <div className={`tfd-wire ${activeFlow ? "flowing" : ""}`} aria-hidden="true">
+        <div className={`tfd-wire ${inboundFlow ? "flowing" : ""}`} aria-hidden="true">
           <span />
+          <em>{AMOUNT.toLocaleString()} USDC</em>
         </div>
 
         <div className="tfd-policy">
@@ -298,12 +339,14 @@ export function TransferFeeDemo() {
         </div>
 
         <div className="tfd-output-stack">
-          <div className={`tfd-output-line primary ${activeFlow ? "flowing" : ""}`} aria-hidden="true">
+          <div className={`tfd-output-line primary ${outboundFlow ? "flowing" : ""}`} aria-hidden="true">
             <span />
+            <em>{net.toFixed(2)} USDC</em>
           </div>
           {hasFee ? (
-            <div className={`tfd-output-line fee ${activeFlow ? "flowing" : ""}`} aria-hidden="true">
+            <div className={`tfd-output-line fee ${outboundFlow ? "flowing" : ""}`} aria-hidden="true">
               <span />
+              <em>{fee.toFixed(2)} USDC</em>
             </div>
           ) : null}
         </div>
@@ -321,6 +364,7 @@ export function TransferFeeDemo() {
 
           {hasFee ? (
             <div className="tfd-wallet fee-vault">
+              <SuccessBurst show={delivered} />
               <div className="tfd-node-title">
                 <Landmark size={15} aria-hidden="true" />
                 수수료 수취처

@@ -6,14 +6,11 @@ import {
   ArrowRight,
   Ban,
   Check,
-  CheckCircle2,
-  Landmark,
   Loader2,
   Plus,
   RotateCcw,
   ShieldCheck,
   SlidersHorizontal,
-  Wallet,
 } from "lucide-react";
 import { SuccessBurst } from "../SuccessBurst";
 
@@ -205,6 +202,7 @@ export function TransferHookDemo() {
   };
 
   const running = phase !== "idle";
+  const verifying = phase === "request" || phase === "verify" || phase === "decide";
   const stepIndex =
     phase === "idle" ? -1 : phase === "request" ? 0 : phase === "verify" ? 1 : phase === "decide" ? 2 : 3;
 
@@ -310,9 +308,12 @@ export function TransferHookDemo() {
               className={`thd-chip ${item.id === scenarioId ? "active" : ""} ${
                 item.failedHook ? "deny" : "allow"
               }`}
-              disabled={running}
+              disabled={verifying}
               key={item.id}
-              onClick={() => setScenarioId(item.id)}
+              onClick={() => {
+                reset();
+                setScenarioId(item.id);
+              }}
               type="button"
             >
               <strong>{item.name}</strong>
@@ -339,28 +340,76 @@ export function TransferHookDemo() {
 
       <div className={`thd-stage ${phase} ${result ?? ""}`}>
         <div className="thd-network-grid" aria-hidden="true" />
-        <div className="thd-wallet thd-sender-wallet">
-          <div className="thd-wallet-top">
-            <Wallet size={15} aria-hidden="true" />
-            {scenario.name}
+
+        <div className="mrd-phone-shell">
+          <span className="mrd-phone-notch" aria-hidden="true" />
+          <div className="mrd-phone-screen">
+            <div className="mrd-app-bar">
+              <span>Solana Wallet</span>
+              <code>Send...8xQ</code>
+            </div>
+
+            <div className="mrd-phone-content">
+              <div className="mrd-phone-top">
+                <strong>전송 확인</strong>
+                <span>×</span>
+              </div>
+
+              <div className="mrd-token-mark" aria-hidden="true">
+                <img alt="" src="/usdc.svg" />
+              </div>
+
+              <div className="mrd-send-amount">
+                <strong>{AMOUNT.toLocaleString()}</strong>
+                <span>USDC</span>
+                <small>보유 잔액 {senderBalance.toLocaleString()} USDC</small>
+              </div>
+
+              <div className="mrd-confirm-stack">
+                <div className="mrd-phone-row">
+                  <span>받는 사람</span>
+                  <code>{scenario.addr}</code>
+                </div>
+                <div className="mrd-phone-row">
+                  <span>계정 상태</span>
+                  <code>{scenario.name}</code>
+                </div>
+                <div className="mrd-phone-row">
+                  <span>네트워크</span>
+                  <code>솔라나</code>
+                </div>
+                <div className="mrd-phone-row muted">
+                  <span>네트워크 수수료</span>
+                  <code>0.000005 SOL</code>
+                </div>
+              </div>
+
+              <div className="mrd-phone-actions">
+                <button className="mrd-reset-button" onClick={reset} type="button" aria-label="초기화">
+                  <RotateCcw size={15} aria-hidden="true" />
+                </button>
+                <button className="mrd-send-button" disabled={verifying} onClick={run} type="button">
+                  {verifying ? <Loader2 className="thd-spin" size={15} aria-hidden="true" /> : <ArrowRight size={15} aria-hidden="true" />}
+                  {verifying ? "검증 중" : phase === "done" ? "다시 전송" : "전송 요청"}
+                </button>
+              </div>
+            </div>
+
+            <span className="mrd-home-bar" aria-hidden="true" />
           </div>
-          <div className="thd-wallet-balance">
-            <span>USDC 잔액</span>
-            <strong>{senderBalance.toLocaleString()}</strong>
-          </div>
-          <code>{scenario.addr}</code>
         </div>
 
-        <div className={`thd-wire left ${phase === "request" ? "flowing" : ""}`} aria-hidden="true">
-          <span className="thd-packet" />
+        <div className={`mrd-rail ${phase === "request" ? "flowing" : ""}`}>
+          <span />
+          <em className="mrd-rail-amount">{AMOUNT} USDC</em>
+          <strong>전송 요청</strong>
         </div>
 
         <div className={`thd-policy-runtime ${hookState}`}>
           <SuccessBurst show={phase === "done" && result === "fail"} tone="reject" />
-          <div className="thd-runtime-core">
-            <span>솔라나 네트워크</span>
-            <strong>Token Extensions</strong>
-            <small>Transfer Hook 호출</small>
+          <div className="thd-runtime-title">
+            <ShieldCheck size={15} aria-hidden="true" />
+            <strong>Transfer Hook</strong>
           </div>
           <div className="thd-runtime-list" aria-label="선택된 Hook 실행 순서">
             {configuredHooks.map((hook, index) => {
@@ -381,6 +430,15 @@ export function TransferHookDemo() {
                   </span>
                   <div>
                     <strong>{hook.label}</strong>
+                    <small>
+                      {state === "active"
+                        ? "검증 중"
+                        : state === "pass"
+                          ? "통과"
+                          : state === "fail"
+                            ? "중단"
+                            : "대기"}
+                    </small>
                   </div>
                 </div>
               );
@@ -389,46 +447,56 @@ export function TransferHookDemo() {
         </div>
 
         <div
-          className={`thd-wire right ${result === "pass" && phase === "done" ? "flowing" : ""} ${
-            result === "fail" && phase === "done" ? "blocked" : ""
-          }`}
-          aria-hidden="true"
+          className={`mrd-rail ${result === "pass" && phase === "done" && !settled ? "flowing" : ""} ${
+            settled ? "done" : ""
+          } ${result === "fail" && phase === "done" ? "blocked" : ""}`}
         >
-          <span className="thd-packet" />
+          <span />
+          <strong>{result === "fail" ? "차단" : "기록"}</strong>
         </div>
 
-        <div className={`thd-wallet ${settled ? "credited" : ""}`}>
+        <div className={`mrd-transaction-panel ${result ?? ""} ${settled ? "credited" : ""}`}>
           <SuccessBurst show={settled} />
-          <div className="thd-wallet-top">
-            <Landmark size={15} aria-hidden="true" />
-            수신 지갑
+          <SuccessBurst show={phase === "done" && result === "fail"} tone="reject" />
+          <div className="mrd-desktop-bar">
+            <span />
+            <span />
+            <span />
           </div>
-          <div className="thd-wallet-balance">
-            <span>USDC 잔액</span>
-            <strong>{recipientBalance.toLocaleString()}</strong>
+          <div className="mrd-ledger-head">
+            <span>수신 계정</span>
+            <strong>
+              {phase === "idle" ? "대기" : running ? "검증 중" : result === "pass" ? "수신 완료" : "전송 차단"}
+            </strong>
           </div>
-          <div className="thd-amount-row">
-            <strong>{AMOUNT} USDC</strong>
-          </div>
-        </div>
-      </div>
 
-      <div className="thd-controls">
-        {phase === "done" ? (
-          <button className="button button-muted" onClick={reset} type="button">
-            <RotateCcw size={14} aria-hidden="true" />
-            다시 시도
-          </button>
-        ) : (
-          <button className="button button-dark" disabled={running} onClick={run} type="button">
-            {running ? (
-              <Loader2 className="thd-spin" size={15} aria-hidden="true" />
-            ) : (
-              <ArrowRight size={15} aria-hidden="true" />
-            )}
-            {running ? "검증 진행 중" : "전송 시작"}
-          </button>
-        )}
+          {phase === "idle" ? (
+            <div className="mrd-empty-state">
+              <ShieldCheck size={34} aria-hidden="true" />
+              <strong>왼쪽 지갑에서 전송을 실행해 보세요.</strong>
+              <span>Transfer Hook을 통과한 전송만 잔액에 반영됩니다.</span>
+            </div>
+          ) : (
+            <div className="mrd-receipt">
+              <div className="mrd-receipt-total">
+                <span>수신 잔액</span>
+                <strong>{recipientBalance.toLocaleString()} USDC</strong>
+              </div>
+              <div className="mrd-receipt-row">
+                <span>금액</span>
+                <code>{result === "fail" ? "0 USDC" : `${AMOUNT} USDC`}</code>
+              </div>
+              <div className="mrd-receipt-row">
+                <span>계정</span>
+                <code>{scenario.addr}</code>
+              </div>
+              <div className="mrd-receipt-row">
+                <span>결과</span>
+                <code>{result === "pass" ? "Hook 통과" : result === "fail" ? "Hook 차단" : "검증 중"}</code>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

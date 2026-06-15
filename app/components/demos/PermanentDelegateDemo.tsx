@@ -174,7 +174,7 @@ export function PermanentDelegateDemo() {
                 ? "한국은행 권한 확인"
                 : nodeState === "rejected"
                   ? "지정 위임자 아님"
-                  : "지정 위임자: 한국은행"}
+                  : "지정 위임자: 한국은행 관리 지갑"}
           </small>
         </div>
 

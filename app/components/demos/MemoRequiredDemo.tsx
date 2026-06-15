@@ -9,7 +9,6 @@ import {
   Loader2,
   ReceiptText,
   RotateCcw,
-  Wallet,
 } from "lucide-react";
 import { SuccessBurst } from "../SuccessBurst";
 
@@ -34,6 +33,15 @@ export function MemoRequiredDemo() {
   const recipientBalance = settled ? START_RECIPIENT + AMOUNT : START_RECIPIENT;
   const running = phase === "send";
   const gateState = phase === "send" ? "checking" : phase === "done" ? result ?? "ready" : "ready";
+  const transferStatus = running ? "전송 중" : phase === "done" && result === "pass" ? "전송 완료" : phase === "done" ? "전송 실패" : "전송 실행";
+  const statusText =
+    phase === "send"
+      ? "참조값 확인 중"
+      : phase === "done" && result === "pass"
+        ? "감사 기록 생성"
+        : phase === "done"
+          ? "전송 중단"
+          : "전송 대기";
 
   const clearTimers = () => {
     timers.current.forEach(clearTimeout);
@@ -70,42 +78,85 @@ export function MemoRequiredDemo() {
       <section className="mrd-stage mrd-audit-stage" aria-label="Memo Required 감사 흐름">
         <div className="mrd-network" aria-hidden="true" />
 
-        <div className="mrd-wallet sender">
-          <div className="mrd-wallet-head">
-            <span>
-              <Wallet size={15} aria-hidden="true" />
-              보내는 지갑
-            </span>
-            <code>Send...8xQ</code>
-          </div>
+        <div className="mrd-phone-shell">
+          <span className="mrd-phone-notch" aria-hidden="true" />
+          <div className="mrd-phone-screen">
+            <div className="mrd-app-bar">
+              <span>Solana Wallet</span>
+              <code>Send...8xQ</code>
+            </div>
 
-          <div className="mrd-balance">
-            <strong>{senderBalance.toLocaleString()}</strong>
-            <span>USDC</span>
-          </div>
+            <div className="mrd-phone-content">
+              <div className="mrd-phone-top">
+                <strong>전송 확인</strong>
+                <span>×</span>
+              </div>
 
-          <label className="mrd-reference-field">
-            <span>거래 참조값</span>
-            <input
-              disabled={running}
-              onChange={(event) => setReference(event.target.value)}
-              placeholder="송장 번호 또는 내부 거래 ID"
-              value={reference}
-            />
-          </label>
+              <div className="mrd-token-mark" aria-hidden="true">
+                <img alt="" src="/usdc.svg" />
+              </div>
 
-          <div className="mrd-memo-actions">
-            <button className="button button-muted" disabled={running} onClick={() => setReference(DEFAULT_REFERENCE)} type="button">
-              참조값 포함
-            </button>
-            <button className="button button-muted" disabled={running} onClick={() => setReference("")} type="button">
-              참조값 제거
-            </button>
+              <div className="mrd-send-amount">
+                <strong>{AMOUNT.toLocaleString()}</strong>
+                <span>USDC</span>
+                <small>보유 잔액 {senderBalance.toLocaleString()} USDC</small>
+              </div>
+
+              <div className="mrd-confirm-stack">
+                <div className="mrd-phone-row">
+                  <span>받는 사람</span>
+                  <code>Rcpt...4qN</code>
+                </div>
+
+                <div className="mrd-phone-row">
+                  <span>네트워크</span>
+                  <code>솔라나</code>
+                </div>
+
+                <label className="mrd-reference-field">
+                  <span>메모</span>
+                  <input
+                    disabled={running}
+                    onChange={(event) => setReference(event.target.value)}
+                    placeholder="참조값 입력"
+                    value={reference}
+                  />
+                </label>
+
+                <div className="mrd-phone-row muted">
+                  <span>네트워크 수수료</span>
+                  <code>0.000005 SOL</code>
+                </div>
+              </div>
+
+              <div className="mrd-memo-actions">
+                <button className="mrd-inline-action" disabled={running} onClick={() => setReference(DEFAULT_REFERENCE)} type="button">
+                  참조값 포함
+                </button>
+                <button className="mrd-inline-action" disabled={running} onClick={() => setReference("")} type="button">
+                  제거
+                </button>
+              </div>
+
+              <div className="mrd-phone-actions">
+                <button className="mrd-reset-button" onClick={reset} type="button" aria-label="초기화">
+                  <RotateCcw size={15} aria-hidden="true" />
+                </button>
+                <button className="mrd-send-button" disabled={running} onClick={run} type="button">
+                  {running ? <Loader2 className="mrd-spin" size={15} aria-hidden="true" /> : <ArrowRight size={15} aria-hidden="true" />}
+                  {transferStatus}
+                </button>
+              </div>
+            </div>
+
+            <span className="mrd-home-bar" aria-hidden="true" />
           </div>
         </div>
 
-        <div className={`mrd-rail ${phase === "send" ? "flowing" : ""}`} aria-hidden="true">
+        <div className={`mrd-rail ${phase === "send" ? "flowing" : ""}`}>
           <span />
+          <em className="mrd-rail-amount">{AMOUNT} USDC</em>
+          <strong>전송 요청</strong>
         </div>
 
         <div className={`mrd-gate ${gateState}`}>
@@ -127,45 +178,72 @@ export function MemoRequiredDemo() {
           </div>
 
           <div className="mrd-rule-row">
-            <span>검증 기준</span>
-            <strong>거래 참조값 포함</strong>
+            <span>{statusText}</span>
+            <strong>참조값이 있어야 전송 기록이 남습니다.</strong>
+          </div>
+
+          <div className={`mrd-scan-lane ${hasReference ? "filled" : "missing"}`}>
+            <span>Memo</span>
+            <code>{hasReference ? reference : "참조값 미포함"}</code>
+            <i aria-hidden="true" />
           </div>
 
           <div className={`mrd-memo-chip ${hasReference ? "filled" : "missing"}`}>
             {hasReference ? <Check size={13} aria-hidden="true" /> : <Ban size={13} aria-hidden="true" />}
-            {hasReference ? reference : "참조값 미포함"}
+            {gateState === "checking" ? "검증 중" : hasReference ? "확인됨" : "차단 대상"}
           </div>
         </div>
 
         <div
-          className={`mrd-rail ${result === "pass" ? "flowing" : ""} ${result === "fail" ? "blocked" : ""}`}
-          aria-hidden="true"
+          className={`mrd-rail ${result === "pass" && !settled ? "flowing" : ""} ${settled ? "done" : ""} ${
+            result === "fail" ? "blocked" : ""
+          }`}
         >
           <span />
+          <strong>{result === "fail" ? "중단" : "기록"}</strong>
         </div>
 
-        <div className={`mrd-wallet recipient ${settled ? "credited" : ""}`}>
+        <div className={`mrd-transaction-panel ${result ?? ""} ${settled ? "credited" : ""}`}>
           <SuccessBurst show={settled} />
           <SuccessBurst show={phase === "done" && result === "fail"} tone="reject" />
-          <div>
-            <Wallet size={15} aria-hidden="true" />
-            수신 지갑
+          <div className="mrd-desktop-bar">
+            <span />
+            <span />
+            <span />
           </div>
-          <strong>{recipientBalance.toLocaleString()}</strong>
-          <span>USDC</span>
+          <div className="mrd-ledger-head">
+            <span>트랜잭션</span>
+            <strong>{phase === "idle" ? "대기" : running ? "처리 중" : result === "pass" ? "기록 완료" : "거절"}</strong>
+          </div>
+
+          {phase === "idle" ? (
+            <div className="mrd-empty-state">
+              <ReceiptText size={34} aria-hidden="true" />
+              <strong>왼쪽 지갑에서 전송을 실행해 보세요.</strong>
+              <span>거래 참조값이 트랜잭션과 함께 기록됩니다.</span>
+            </div>
+          ) : (
+            <div className="mrd-receipt">
+              <div className="mrd-receipt-total">
+                <span>수신 잔액</span>
+                <strong>{recipientBalance.toLocaleString()} USDC</strong>
+              </div>
+              <div className="mrd-receipt-row">
+                <span>금액</span>
+                <code>{AMOUNT} USDC</code>
+              </div>
+              <div className="mrd-receipt-row">
+                <span>메모</span>
+                <code>{hasReference ? reference : "없음"}</code>
+              </div>
+              <div className="mrd-receipt-row">
+                <span>서명</span>
+                <code>{result === "pass" ? "5wM...9pQ" : "생성 안 됨"}</code>
+              </div>
+            </div>
+          )}
         </div>
       </section>
-
-      <div className="mrd-actions">
-        <button className="button button-muted" onClick={reset} type="button">
-          <RotateCcw size={14} aria-hidden="true" />
-          초기화
-        </button>
-        <button className="button button-dark" disabled={running} onClick={run} type="button">
-          {running ? <Loader2 className="mrd-spin" size={14} aria-hidden="true" /> : <ArrowRight size={14} aria-hidden="true" />}
-          {running ? "확인 중" : "전송 실행"}
-        </button>
-      </div>
     </div>
   );
 }
