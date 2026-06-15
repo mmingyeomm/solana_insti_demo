@@ -473,7 +473,7 @@ export function TransferHookDemo() {
           {phase === "idle" ? (
             <div className="mrd-empty-state">
               <ShieldCheck size={34} aria-hidden="true" />
-              <strong>왼쪽 지갑에서 전송을 실행해 보세요.</strong>
+              <strong>지갑에서 전송을 실행해 보세요.</strong>
               <span>Transfer Hook을 통과한 전송만 잔액에 반영됩니다.</span>
             </div>
           ) : (

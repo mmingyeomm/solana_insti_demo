@@ -219,7 +219,7 @@ export function MemoRequiredDemo() {
           {phase === "idle" ? (
             <div className="mrd-empty-state">
               <ReceiptText size={34} aria-hidden="true" />
-              <strong>왼쪽 지갑에서 전송을 실행해 보세요.</strong>
+              <strong>지갑에서 전송을 실행해 보세요.</strong>
               <span>거래 참조값이 트랜잭션과 함께 기록됩니다.</span>
             </div>
           ) : (

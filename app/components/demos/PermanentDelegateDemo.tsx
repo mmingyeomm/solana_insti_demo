@@ -7,50 +7,84 @@ import {
   Flame,
   Landmark,
   Loader2,
+  Lock,
   RotateCcw,
   ShieldCheck,
   Snowflake,
+  Siren,
   Undo2,
   UserRound,
-  Wallet,
 } from "lucide-react";
 import { SuccessBurst } from "../SuccessBurst";
 
 type Requester = "issuer" | "user";
 type ActionId = "clawback" | "burn" | "freeze";
-type Phase = "idle" | "request" | "verify" | "done";
+type Phase = "idle" | "sending" | "done";
 type Result = "executed" | "rejected" | null;
 
 const requesters = {
-  issuer: { name: "한국은행", addr: "BOK...K7", icon: Landmark, note: "예외 조치 권한 보유" },
-  user: { name: "일반 사용자", addr: "Usr...3p", icon: UserRound, note: "위임 권한 없음" },
+  issuer: { name: "한국은행", icon: Landmark },
+  user: { name: "일반 사용자", icon: UserRound },
 } as const;
 
-const actions: { id: ActionId; label: string; badge: string; icon: typeof Undo2 }[] = [
-  { id: "clawback", label: "탈취 금액 회수", badge: "기관 회수 계정으로 이동", icon: Undo2 },
-  { id: "burn", label: "오발행분 소각", badge: "소각 완료", icon: Flame },
-  { id: "freeze", label: "의심 계정 동결", badge: "계정 동결", icon: Snowflake },
+const actions: {
+  id: ActionId;
+  label: string;
+  icon: typeof Undo2;
+  incident: string;
+  target: string;
+  resultText: string;
+  removes: boolean;
+  locks: boolean;
+}[] = [
+  {
+    id: "clawback",
+    label: "회수",
+    icon: Undo2,
+    incident: "탈취 자금이 악의적 주소로 유출됐습니다.",
+    target: "악의적 주소",
+    resultText: "자금 회수 완료",
+    removes: true,
+    locks: false,
+  },
+  {
+    id: "burn",
+    label: "소각",
+    icon: Flame,
+    incident: "토큰이 잘못 발행되어 유통되고 있습니다.",
+    target: "오발행 계정",
+    resultText: "오발행분 소각 완료",
+    removes: true,
+    locks: false,
+  },
+  {
+    id: "freeze",
+    label: "동결",
+    icon: Snowflake,
+    incident: "이상 거래가 반복적으로 탐지됐습니다.",
+    target: "의심 계정",
+    resultText: "계정 동결 완료",
+    removes: false,
+    locks: true,
+  },
 ];
 
-const TARGET_START = 800;
-const steps = ["사고 접수", "권한 확인", "조치 실행"];
-
-const REQUEST_MS = 680;
-const VERIFY_MS = 1280;
+const START = 800;
+const steps = ["사고 접수", "관리자 조치", "계좌 반영"];
+const SEND_MS = 900;
 const SETTLE_MS = 720;
 
 export function PermanentDelegateDemo() {
   const [requester, setRequester] = useState<Requester>("issuer");
-  const [actionId, setActionId] = useState<ActionId>("clawback");
+  const [actionId, setActionId] = useState<ActionId>("freeze");
   const [phase, setPhase] = useState<Phase>("idle");
   const [result, setResult] = useState<Result>(null);
   const [settled, setSettled] = useState(false);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const action = actions.find((item) => item.id === actionId) ?? actions[0];
-  const party = requesters[requester];
   const authorized = requester === "issuer";
-  const running = phase === "request" || phase === "verify";
+  const running = phase === "sending";
 
   const clearTimers = () => {
     timers.current.forEach(clearTimeout);
@@ -80,8 +114,7 @@ export function PermanentDelegateDemo() {
     clearTimers();
     setResult(null);
     setSettled(false);
-    setPhase("request");
-    timers.current.push(setTimeout(() => setPhase("verify"), REQUEST_MS));
+    setPhase("sending");
     timers.current.push(
       setTimeout(() => {
         setResult(authorized ? "executed" : "rejected");
@@ -89,34 +122,37 @@ export function PermanentDelegateDemo() {
         if (authorized) {
           timers.current.push(setTimeout(() => setSettled(true), SETTLE_MS));
         }
-      }, VERIFY_MS),
+      }, SEND_MS),
     );
   };
 
-  const stepIndex = phase === "idle" ? -1 : phase === "request" ? 0 : phase === "verify" ? 1 : 2;
+  const stepIndex = phase === "idle" ? 0 : phase === "sending" ? 1 : 2;
 
-  const nodeState =
-    phase === "request" || phase === "verify"
-      ? "checking"
-      : phase === "done"
-        ? result ?? "ready"
-        : "ready";
+  const removed = settled && action.removes;
+  const locked = settled && action.locks;
+  const accountBalance = removed ? 0 : START;
 
-  const removed = settled && (actionId === "clawback" || actionId === "burn");
-  const frozen = settled && actionId === "freeze";
-  const targetBalance = removed ? 0 : TARGET_START;
-
-  const PartyIcon = party.icon;
-  const ActionIcon = action.icon;
+  const consoleStatus =
+    running ? "조치 전송 중" : phase === "done" ? (result === "executed" ? "조치 실행 완료" : "권한 거부") : "조치 준비";
+  const accountStatus =
+    phase === "done"
+      ? result === "executed"
+        ? locked
+          ? "계정 동결됨"
+          : "조치 완료"
+        : "권한 거부"
+      : running
+        ? "조치 반영 중"
+        : "정상";
 
   return (
-    <div className={`pdd ${nodeState}`}>
+    <div className="pdg">
       <div className="thd-steps">
         {steps.map((label, i) => (
           <div className="thd-step" key={label}>
             <span
               className={`thd-step-num ${
-                i <= stepIndex ? (result === "rejected" && i >= 1 ? "fail" : "active") : ""
+                i <= stepIndex ? (result === "rejected" && i >= 2 ? "fail" : "active") : ""
               }`}
             >
               {i + 1}
@@ -127,147 +163,164 @@ export function PermanentDelegateDemo() {
         ))}
       </div>
 
-      <section className="pdd-stage" aria-label="Permanent Delegate 조치 흐름">
-        <div className="dasd-network" aria-hidden="true" />
+      <section className="pdg-stage" aria-label="Permanent Delegate 사고 대응 흐름">
+        <div className="mrd-network" aria-hidden="true" />
 
-        <div className="pdd-incident">
-          <span>운영 사고 대응</span>
-          <strong>
-            {actionId === "clawback"
-              ? "악의적 주소로 이동한 금액을 회수합니다."
-              : actionId === "burn"
-                ? "오발행된 토큰을 유통량에서 제거합니다."
-                : "이상거래 계정을 즉시 멈춥니다."}
-          </strong>
-        </div>
-
-        <div className="pdd-party">
-          <div className="pdd-party-top">
-            <PartyIcon size={15} aria-hidden="true" />
-            요청 주체
+        {/* 1. external incident intake */}
+        <div className="pdg-incident">
+          <div className="pdg-incident-head">
+            <span className="pdg-incident-icon">
+              <Siren size={18} aria-hidden="true" />
+            </span>
+            <strong>외부 사고 접수</strong>
           </div>
-          <strong>{party.name}</strong>
-          <code>{party.addr}</code>
-          <span className={`pdd-party-note ${authorized ? "has" : "no"}`}>{party.note}</span>
+          <p>{action.incident}</p>
+          <div className="pdg-incident-row">
+            <span>대상</span>
+            <code>{action.target}</code>
+          </div>
+          <div className="pdg-incident-tag">
+            <Siren size={12} aria-hidden="true" />
+            접수 완료
+          </div>
         </div>
 
-        <div className={`dasd-rail ${phase === "request" ? "flowing" : ""}`} aria-hidden="true">
+        <div className={`mrd-rail ${phase !== "idle" ? "done" : ""}`}>
           <span />
+          <strong>접수</strong>
         </div>
 
-        <div className={`pdd-node ${nodeState}`}>
-          <div className="pdd-node-icon">
-            {nodeState === "checking" ? (
-              <Loader2 className="mrd-spin" size={22} aria-hidden="true" />
-            ) : nodeState === "rejected" ? (
-              <Ban size={22} aria-hidden="true" />
-            ) : (
-              <ShieldCheck size={22} aria-hidden="true" />
-            )}
+        {/* 2. admin laptop console */}
+        <div className="pdg-laptop">
+          <div className="pdg-laptop-screen">
+            <div className="pdg-laptop-inner">
+              <div className="pdg-laptop-bar">
+                <span className="pdg-laptop-dots" aria-hidden="true">
+                  <span />
+                  <span />
+                  <span />
+                </span>
+                <span className="pdg-laptop-title">한국은행 운영 콘솔</span>
+                <span className="pdg-laptop-status">{consoleStatus}</span>
+              </div>
+
+              <div className="pdg-laptop-content">
+                <div className="pdg-field">
+                  <span>요청 주체</span>
+                  <div className="pdd-seg" role="group" aria-label="요청 주체 선택">
+                    {(Object.keys(requesters) as Requester[]).map((key) => {
+                      const Icon = requesters[key].icon;
+                      return (
+                        <button
+                          className={requester === key ? "active" : ""}
+                          disabled={running}
+                          key={key}
+                          onClick={() => pickRequester(key)}
+                          type="button"
+                        >
+                          <Icon size={15} aria-hidden="true" />
+                          {requesters[key].name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="pdg-field">
+                  <span>실행할 조치</span>
+                  <div className="pdd-seg" role="group" aria-label="실행할 조치 선택">
+                    {actions.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <button
+                          className={actionId === item.id ? "active" : ""}
+                          disabled={running}
+                          key={item.id}
+                          onClick={() => pickAction(item.id)}
+                          type="button"
+                        >
+                          <Icon size={15} aria-hidden="true" />
+                          {item.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className={`pdg-auth ${authorized ? "has" : "no"}`}>
+                  {authorized ? <ShieldCheck size={13} aria-hidden="true" /> : <Ban size={13} aria-hidden="true" />}
+                  {authorized ? "한국은행 = Permanent Delegate 지정" : "위임 권한 없음 · 조치 거부"}
+                </div>
+
+                {phase === "done" ? (
+                  <button className="button button-muted pdg-exec" onClick={resetRun} type="button">
+                    <RotateCcw size={14} aria-hidden="true" />
+                    다시 시도
+                  </button>
+                ) : (
+                  <button className="button button-dark pdg-exec" disabled={running} onClick={run} type="button">
+                    {running ? <Loader2 className="mrd-spin" size={14} aria-hidden="true" /> : <ArrowRight size={14} aria-hidden="true" />}
+                    {running ? "조치 실행 중" : "조치 실행"}
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
-          <span>Token Extensions</span>
-          <strong>Permanent Delegate</strong>
-          <small>
-            {nodeState === "checking"
-              ? "지정 위임자 대조 중…"
-              : nodeState === "executed"
-                ? "한국은행 권한 확인"
-                : nodeState === "rejected"
-                  ? "지정 위임자 아님"
-                  : "지정 위임자: 한국은행 관리 지갑"}
-          </small>
+          <div className="pdg-laptop-deck" aria-hidden="true" />
         </div>
 
         <div
-          className={`dasd-rail ${result === "executed" && phase === "done" ? "flowing" : ""} ${
-            result === "rejected" && phase === "done" ? "blocked" : ""
-          }`}
-          aria-hidden="true"
+          className={`mrd-rail ${result === "executed" && phase !== "idle" && !settled ? "flowing" : ""} ${
+            settled ? "done" : ""
+          } ${result === "rejected" && phase === "done" ? "blocked" : ""}`}
         >
           <span />
+          <strong>{result === "rejected" ? "거부" : "조치 실행"}</strong>
         </div>
 
-        <div className={`pdd-target ${settled ? "acted" : ""} ${frozen ? "frozen" : ""}`}>
-          <SuccessBurst show={settled} />
+        {/* 3. target account (locks) */}
+        <div
+          className={`mrd-transaction-panel pdg-account ${locked ? "locked" : ""} ${
+            settled && !locked ? "pass" : ""
+          }`}
+        >
+          <SuccessBurst show={settled && !locked} />
           <SuccessBurst show={phase === "done" && result === "rejected"} tone="reject" />
-          <div className="pdd-party-top">
-            <Wallet size={15} aria-hidden="true" />
-            {actionId === "clawback" ? "악의적 주소" : actionId === "burn" ? "오발행 계정" : "의심 계정"}
+          {locked ? (
+            <div className="pdg-lock-overlay">
+              <span className="pdg-lock-icon">
+                <Lock size={24} aria-hidden="true" />
+              </span>
+              <strong>계정 동결됨</strong>
+            </div>
+          ) : null}
+
+          <div className="mrd-desktop-bar">
+            <span />
+            <span />
+            <span />
           </div>
-          <code>Hld...9x</code>
-          <strong>{targetBalance.toLocaleString()} USDC</strong>
-          {settled ? (
-            <span className="pdd-target-badge">
-              <ActionIcon size={12} aria-hidden="true" />
-              {action.badge}
-            </span>
-          ) : (
-            <span className="pdd-target-state">{frozen ? "동결됨" : "정상"}</span>
-          )}
+          <div className="mrd-ledger-head">
+            <span>대상 계좌 · {action.target}</span>
+            <strong>{accountStatus}</strong>
+          </div>
+
+          <div className="mrd-receipt">
+            <div className="mrd-receipt-total">
+              <span>계정 잔액</span>
+              <strong>{accountBalance.toLocaleString()} USDC</strong>
+            </div>
+            <div className="mrd-receipt-row">
+              <span>계정</span>
+              <code>Hld...9x</code>
+            </div>
+            <div className="mrd-receipt-row">
+              <span>조치 결과</span>
+              <code>{phase === "done" ? (result === "executed" ? action.resultText : "거부됨") : "조치 전"}</code>
+            </div>
+          </div>
         </div>
       </section>
-
-      <div className="pdd-panel">
-        <div className="pdd-seg-group">
-          <span className="pdd-seg-label">요청 주체</span>
-          <div className="pdd-seg" role="group" aria-label="요청 주체 선택">
-            {(Object.keys(requesters) as Requester[]).map((key) => {
-              const Icon = requesters[key].icon;
-              return (
-                <button
-                  className={requester === key ? "active" : ""}
-                  disabled={running}
-                  key={key}
-                  onClick={() => pickRequester(key)}
-                  type="button"
-                >
-                  <Icon size={15} aria-hidden="true" />
-                  {requesters[key].name}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="pdd-seg-group">
-          <span className="pdd-seg-label">실행할 조치</span>
-          <div className="pdd-seg" role="group" aria-label="실행할 조치 선택">
-            {actions.map((item) => {
-              const Icon = item.icon;
-              return (
-                <button
-                  className={actionId === item.id ? "active" : ""}
-                  disabled={running}
-                  key={item.id}
-                  onClick={() => pickAction(item.id)}
-                  type="button"
-                >
-                  <Icon size={15} aria-hidden="true" />
-                  {item.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="pdd-run">
-          {phase === "done" ? (
-            <button className="button button-muted" onClick={resetRun} type="button">
-              <RotateCcw size={14} aria-hidden="true" />
-              다시 시도
-            </button>
-          ) : (
-            <button className="button button-dark" disabled={running} onClick={run} type="button">
-              {running ? (
-                <Loader2 className="mrd-spin" size={15} aria-hidden="true" />
-              ) : (
-                <ArrowRight size={15} aria-hidden="true" />
-              )}
-              {running ? "조치 실행 중" : "조치 실행 요청"}
-            </button>
-          )}
-        </div>
-      </div>
     </div>
   );
 }

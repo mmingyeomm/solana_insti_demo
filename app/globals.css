@@ -6838,9 +6838,9 @@ blockquote {
   grid-template-columns:
     minmax(218px, 248px)
     minmax(52px, 76px)
-    minmax(300px, 348px)
+    minmax(252px, 300px)
     minmax(52px, 76px)
-    minmax(232px, 286px);
+    minmax(248px, 300px);
   justify-content: center;
   align-items: center;
   gap: clamp(0.85rem, 1.8vw, 1.5rem);
@@ -7817,6 +7817,320 @@ blockquote {
   opacity: 0.52;
 }
 
+/* Permanent Delegate — incident → admin laptop → account lock */
+.pdg {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.1rem;
+}
+
+.pdg-stage {
+  position: relative;
+  display: grid;
+  grid-template-columns:
+    minmax(208px, 248px)
+    minmax(52px, 76px)
+    minmax(320px, 384px)
+    minmax(52px, 76px)
+    minmax(240px, 296px);
+  justify-content: center;
+  align-items: center;
+  gap: clamp(0.85rem, 1.8vw, 1.5rem);
+  overflow: hidden;
+  min-height: 470px;
+  padding: clamp(1.3rem, 2.6vw, 2.1rem);
+  border: 1px solid rgba(22, 22, 33, 0.08);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 18% 20%, rgba(207, 59, 59, 0.06), transparent 34%),
+    radial-gradient(circle at 74% 54%, rgba(124, 58, 237, 0.1), transparent 32%),
+    rgba(255, 255, 255, 0.86);
+}
+
+/* 1. incident card */
+.pdg-incident {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  align-content: start;
+  gap: 0.65rem;
+  min-width: 0;
+  min-height: 248px;
+  padding: 1rem;
+  border: 1px solid rgba(207, 59, 59, 0.28);
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(207, 59, 59, 0.06), rgba(255, 255, 255, 0.92));
+  box-shadow: 0 14px 34px rgba(22, 22, 33, 0.06);
+}
+
+.pdg-incident-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.pdg-incident-icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: rgba(207, 59, 59, 0.12);
+  color: #cf3b3b;
+}
+
+.pdg-incident-head span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.pdg-incident-head strong {
+  color: var(--ink);
+  font-size: 0.92rem;
+  font-weight: 850;
+}
+
+.pdg-incident p {
+  margin: 0;
+  min-height: 2.5rem;
+  color: var(--ink);
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+
+.pdg-incident-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-top: 0.55rem;
+  border-top: 1px solid rgba(22, 22, 33, 0.08);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.pdg-incident-row span {
+  color: var(--muted);
+}
+
+.pdg-incident-row code {
+  color: var(--ink);
+  font-weight: 800;
+}
+
+.pdg-incident-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  width: fit-content;
+  padding: 0.28rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(207, 59, 59, 0.1);
+  color: #8b1d1d;
+  font-size: 0.72rem;
+  font-weight: 820;
+}
+
+/* 2. admin laptop */
+.pdg-laptop {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  min-width: 0;
+}
+
+.pdg-laptop-screen {
+  width: 100%;
+  padding: 9px;
+  border-radius: 14px;
+  background: linear-gradient(150deg, #15151f, #07070b 70%);
+  box-shadow:
+    0 26px 60px rgba(22, 22, 33, 0.2),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.07);
+}
+
+.pdg-laptop-inner {
+  display: grid;
+  border-radius: 8px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #ffffff, #f7f7fb);
+}
+
+.pdg-laptop-bar {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.8rem;
+  border-bottom: 1px solid rgba(22, 22, 33, 0.08);
+  background:
+    radial-gradient(circle at 12% 30%, rgba(0, 255, 163, 0.12), transparent 42%),
+    linear-gradient(135deg, #1b1430, #2a1450);
+}
+
+.pdg-laptop-dots {
+  display: inline-flex;
+  gap: 0.3rem;
+}
+
+.pdg-laptop-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.pdg-laptop-title {
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.pdg-laptop-status {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.68rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.pdg-laptop-content {
+  display: grid;
+  gap: 0.7rem;
+  padding: 0.95rem;
+}
+
+.pdg-laptop-deck {
+  position: relative;
+  width: 112%;
+  height: 13px;
+  margin-top: -1px;
+  border-radius: 2px 2px 11px 11px;
+  background: linear-gradient(180deg, #d8dae3, #b6bac8);
+  box-shadow: 0 16px 26px rgba(22, 22, 33, 0.16);
+}
+
+.pdg-laptop-deck::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 64px;
+  height: 4px;
+  transform: translateX(-50%);
+  border-radius: 0 0 6px 6px;
+  background: rgba(22, 22, 33, 0.16);
+}
+
+.pdg-field {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.pdg-field > span {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.pdg-auth {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+  padding: 0.5rem 0.62rem;
+  border-radius: 8px;
+  font-size: 0.76rem;
+  font-weight: 820;
+}
+
+.pdg-auth.has {
+  border: 1px solid rgba(124, 58, 237, 0.4);
+  background: rgba(124, 58, 237, 0.1);
+  color: #5b21b6;
+}
+
+.pdg-auth.no {
+  border: 1px solid rgba(207, 59, 59, 0.4);
+  background: rgba(207, 59, 59, 0.08);
+  color: #8b1d1d;
+}
+
+.pdg-exec {
+  width: 100%;
+  margin-top: 0.1rem;
+}
+
+/* 3. target account (locks) */
+.pdg-account {
+  min-width: 0;
+}
+
+.pdg-account.locked {
+  border-color: rgba(56, 110, 200, 0.5);
+  background: linear-gradient(180deg, rgba(56, 110, 200, 0.1), rgba(255, 255, 255, 0.9));
+}
+
+.pdg-account.locked .mrd-ledger-head strong {
+  color: #2a5599;
+}
+
+.pdg-lock-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 0.5rem;
+  border-radius: inherit;
+  background: rgba(36, 60, 110, 0.16);
+  backdrop-filter: blur(1.5px);
+}
+
+.pdg-lock-icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid rgba(56, 110, 200, 0.4);
+  color: #2a5599;
+  box-shadow: 0 12px 28px rgba(36, 60, 110, 0.2);
+}
+
+.pdg-lock-overlay strong {
+  padding: 0.24rem 0.6rem;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #2a5599;
+  font-size: 0.82rem;
+  font-weight: 850;
+  box-shadow: 0 8px 18px rgba(36, 60, 110, 0.14);
+}
+
+@media (max-width: 860px) {
+  .pdg-stage {
+    grid-template-columns: 1fr;
+  }
+
+  .pdg-stage .mrd-rail {
+    height: 22px;
+    width: 2px;
+    justify-self: center;
+  }
+
+  .pdg-laptop-deck {
+    width: 100%;
+  }
+}
+
 /* Permanent Delegate demo */
 .pdd {
   position: relative;
@@ -8059,32 +8373,36 @@ blockquote {
 }
 
 .pdd-seg {
-  display: inline-flex;
+  display: flex;
+  width: 100%;
   gap: 0.25rem;
-  width: fit-content;
-  max-width: 100%;
-  padding: 0.25rem;
+  padding: 0.28rem;
   border: 1px solid var(--line);
-  border-radius: 999px;
-  background: #ffffff;
+  border-radius: 10px;
+  background: rgba(248, 248, 251, 0.9);
 }
 
 .pdd-seg button {
+  flex: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.38rem;
-  min-height: 34px;
-  padding: 0 0.85rem;
+  gap: 0.36rem;
+  min-height: 38px;
+  padding: 0 0.4rem;
   border: 0;
-  border-radius: 999px;
+  border-radius: 7px;
   background: transparent;
   color: var(--muted);
-  font-size: 0.84rem;
+  font-size: 0.82rem;
   font-weight: 800;
   white-space: nowrap;
   cursor: pointer;
   transition: background 0.18s ease, color 0.18s ease;
+}
+
+.pdd-seg button:disabled {
+  cursor: not-allowed;
 }
 
 .pdd-seg button:hover:not(:disabled):not(.active) {
@@ -8092,8 +8410,9 @@ blockquote {
 }
 
 .pdd-seg button.active {
-  background: rgba(124, 58, 237, 0.12);
+  background: #ffffff;
   color: #5b21b6;
+  box-shadow: 0 1px 4px rgba(22, 22, 33, 0.12);
 }
 
 .pdd-seg button:disabled {
@@ -14234,12 +14553,19 @@ blockquote {
   display: grid;
   place-items: center;
   min-height: 3px;
+  height: 3px;
   border-radius: 999px;
-  background: rgba(22, 22, 33, 0.12);
+  background-image: repeating-linear-gradient(90deg, rgba(22, 22, 33, 0.26) 0 6px, transparent 6px 13px);
+  background-size: 13px 100%;
 }
 
-.pcad-rail.active {
-  background: linear-gradient(90deg, rgba(124, 58, 237, 0.22), rgba(20, 241, 149, 0.5));
+.pcad-rail.flowing {
+  background-image: repeating-linear-gradient(90deg, rgba(124, 58, 237, 0.9) 0 6px, transparent 6px 13px);
+  animation: mrd-dash-flow 0.5s linear infinite;
+}
+
+.pcad-rail.done {
+  background-image: repeating-linear-gradient(90deg, rgba(22, 160, 106, 0.9) 0 6px, transparent 6px 13px);
 }
 
 .pcad-rail span {
@@ -14589,19 +14915,29 @@ blockquote {
     width: 3px;
     height: 38px;
     justify-self: center;
+    background-image: repeating-linear-gradient(180deg, rgba(22, 22, 33, 0.26) 0 6px, transparent 6px 13px);
+    background-size: 100% 13px;
+  }
+
+  .pcad-rail.flowing {
+    background-image: repeating-linear-gradient(180deg, rgba(124, 58, 237, 0.9) 0 6px, transparent 6px 13px);
+    animation: pcad-dash-flow-v 0.5s linear infinite;
+  }
+
+  .pcad-rail.done {
+    background-image: repeating-linear-gradient(180deg, rgba(22, 160, 106, 0.9) 0 6px, transparent 6px 13px);
+  }
+
+  @keyframes pcad-dash-flow-v {
+    to {
+      background-position: 0 13px;
+    }
   }
 
   .pcad-rail span {
     top: 50%;
     left: calc(100% + 0.65rem);
     transform: translateY(-50%);
-  }
-
-  .pcad-rail i {
-    left: 50%;
-    top: 0;
-    transform: translateX(-50%);
-    animation-name: pcadRailMoveVertical;
   }
 
   .pcad-card,

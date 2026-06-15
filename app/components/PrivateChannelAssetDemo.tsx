@@ -125,8 +125,6 @@ export function PrivateChannelAssetDemo({
   const flows = createFlows(amount, context);
   const flow = flows[flowId];
   const labels = contextLabels[context];
-  const activeIndex =
-    phase === "idle" ? -1 : phase === "toEscrow" || phase === "locked" ? 0 : phase === "read" ? 1 : 2;
   const complete = phase === "done";
   const running = phase === "toEscrow" || phase === "locked" || phase === "read" || phase === "reflect";
 
@@ -297,9 +295,8 @@ export function PrivateChannelAssetDemo({
             </div>
           </div>
 
-          <div className={`pcad-rail ${activeIndex >= 0 ? "active" : ""}`}>
+          <div className={`pcad-rail ${phase === "read" ? "flowing" : ""} ${phase === "reflect" || phase === "done" ? "done" : ""}`}>
             <span>{flow.primary}</span>
-            {phase === "read" ? <i aria-hidden="true" /> : null}
           </div>
 
           <div className="pcad-sync">
@@ -312,9 +309,8 @@ export function PrivateChannelAssetDemo({
             />
           </div>
 
-          <div className={`pcad-rail ${activeIndex >= 1 ? "active" : ""}`}>
+          <div className={`pcad-rail ${phase === "reflect" ? "flowing" : ""} ${phase === "done" ? "done" : ""}`}>
             <span>{flow.secondary}</span>
-            {phase === "reflect" ? <i aria-hidden="true" /> : null}
           </div>
 
           <div className={`pcad-zone ${flow.rightTitle === "Private Channel" ? "private" : "public"}`}>
